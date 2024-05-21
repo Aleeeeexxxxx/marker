@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { IPlugin } from "../token";
+import { logger } from "../logger";
 
 /**
  * ActivityBar
@@ -33,10 +34,31 @@ export class ActivityBar
     /**
      * Implement IPlugin
      */
+    @ActivityBar.triggerVSCodeServer
     postAdd(token: string): void {
         this.tokens.add(token);
+    }
+
+    @ActivityBar.triggerVSCodeServer
+    postRemove(token: string): void {
+        this.tokens.delete(token);
+    }
+
+    triggerUpdate() {
         this._onDidChangeTreeData.fire(undefined);
     }
 
-    postRemove(token: string): void {}
+    static triggerVSCodeServer(
+        target: any,
+        key: string,
+        descriptor: PropertyDescriptor
+    ) {
+        const originalMethod = descriptor.value;
+        descriptor.value = function (...args: any[]) {
+            const result = originalMethod.apply(this, args);
+            target.triggerUpdate();
+            return result;
+        };
+        return descriptor;
+    }
 }
