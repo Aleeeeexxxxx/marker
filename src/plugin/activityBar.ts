@@ -1,15 +1,18 @@
 import * as vscode from "vscode";
-import { IPlugin } from "../token";
+import { IMarkerEvent, MarkerEventType, MarkerPlugin } from "../markerMngr";
+import { PluginEventContext } from "../plugin";
+import { logger } from "../logger";
 
 /**
  * ActivityBar
  */
 export class ActivityBar
-    implements IPlugin, vscode.TreeDataProvider<vscode.TreeItem>
+    implements MarkerPlugin, vscode.TreeDataProvider<vscode.TreeItem>
 {
-    private tokens: Set<string> = new Set<string>();
+    private highlights: Set<string> = new Set<string>();
     private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
         new vscode.EventEmitter<undefined>();
+        
     /**
      * Implement vscode.TreeDataProvider
      */
@@ -26,17 +29,32 @@ export class ActivityBar
         element?: vscode.TreeItem | undefined
     ): vscode.ProviderResult<vscode.TreeItem[]> {
         const array = new Array<vscode.TreeItem>();
-        this.tokens.forEach((val) => array.push(new vscode.TreeItem(val)));
+        this.highlights.forEach((val) => array.push(new vscode.TreeItem(val)));
         return array;
     }
 
     /**
-     * Implement IPlugin
+     * Implement MarkerPlguin
      */
-    postAdd(token: string): void {
-        this.tokens.add(token);
-        this._onDidChangeTreeData.fire(undefined);
+    handle(context: PluginEventContext<IMarkerEvent>): void {
+        const event = context.getEvent();
+
+        switch (event.eventType) {
+            case MarkerEventType.postAdd:
+                this.highlights.add(event.marker);
+                break;
+            case MarkerEventType.postRemove:
+                this.highlights.delete(event.marker);
+                break;
+            default:
+                logger.warn(`unknown event, type=${event.eventType}`);
+                return;
+        }
+
+        this.refresh();
     }
 
-    postRemove(token: string): void {}
+    refresh() {
+        this._onDidChangeTreeData.fire(undefined);
+    }
 }

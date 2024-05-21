@@ -45,8 +45,8 @@ class Logger {
     }
 
     private print(level: string, msg: string) {
-        level = `"${level.toUpperCase()}"`;
-        if (level === "ERROR" || level === "DEBUG") {
+        level = `${level.toUpperCase()}`;
+        if (level === "INFO" || level === "WARN") {
             level += " ";
         }
         msg = `[${level} - ${formatTime(new Date())}] ${msg}`;
