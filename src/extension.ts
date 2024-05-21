@@ -23,14 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (editor) {
-                console.log(
-                    "Active editor changed to: ",
-                    editor.document.fileName
-                );
-            }
-        }),
+        vscode.window.onDidChangeActiveTextEditor((editor) => mngr.reset()),
 
         vscode.workspace.onDidChangeTextDocument((event) => {
             console.log(`event: ${JSON.stringify(event)}`);
