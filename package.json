@@ -4,7 +4,7 @@
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.89.0"
+    "vscode": "^1.88.0"
   },
   "categories": [
     "Other"
@@ -14,8 +14,53 @@
   "contributes": {
     "commands": [
       {
-        "command": "marker.helloWorld",
-        "title": "Hello World"
+        "command": "marker.editor.menu.mark.highlight",
+        "title": "Highlight"
+      },
+      {
+        "command": "marker.editor.menu.mark.remove",
+        "title": "Remove"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "marker_activitybar",
+          "title": "Marker Explorer",
+          "icon": "media/dep.svg"
+        }
+      ]
+    },
+    "views": {
+      "marker_activitybar": [
+        {
+          "id": "marker_activitybar_explorer",
+          "name": "Marker Explorer"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "marker.editor.menu.mark",
+          "group": "1_modification"
+        }
+      ],
+      "marker.editor.menu.mark": [
+        {
+          "group": "1_modification",
+          "command": "marker.editor.menu.mark.highlight"
+        },
+        {
+          "group": "1_modification",
+          "command": "marker.editor.menu.mark.remove"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "marker.editor.menu.mark",
+        "label": "Mark"
       }
     ]
   },
@@ -31,17 +76,17 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.89.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "18.x",
+    "@types/vscode": "^1.89.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
-    "eslint": "^8.57.0",
-    "typescript": "^5.4.5",
-    "ts-loader": "^9.5.1",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4",
     "@vscode/test-cli": "^0.0.9",
-    "@vscode/test-electron": "^2.3.9"
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.57.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
   }
 }
