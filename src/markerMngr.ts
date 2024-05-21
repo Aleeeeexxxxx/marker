@@ -3,8 +3,9 @@ import * as vscode from "vscode";
 import { logger } from "./logger";
 
 export enum MarkerEventType {
-    postAdd,
-    postRemove,
+    POST_ADD,
+    POST_REMOVE,
+    RESET,
 }
 
 export interface IMarkerEvent {
@@ -28,7 +29,7 @@ export class MarkerManager extends PluginManager<IMarkerEvent> {
         this.highlights.set(marker, this.search(marker));
         logger.info(`marker added, ${marker}`);
 
-        this.publish({ marker: marker, eventType: MarkerEventType.postAdd });
+        this.publish({ marker: marker, eventType: MarkerEventType.POST_ADD });
     }
 
     remove(marker: string) {
@@ -40,7 +41,25 @@ export class MarkerManager extends PluginManager<IMarkerEvent> {
         this.highlights.delete(marker);
         logger.info(`marker removed, ${marker}`);
 
-        this.publish({ marker: marker, eventType: MarkerEventType.postRemove });
+        this.publish({
+            marker: marker,
+            eventType: MarkerEventType.POST_REMOVE,
+        });
+    }
+
+    reset() {
+        if (!vscode.window.activeTextEditor) {
+            return;
+        }
+
+        for (const key of this.highlights.keys()) {
+            this.highlights.set(key, this.search(key));
+        }
+
+        logger.info(
+            `mngr reset for ${vscode.window.activeTextEditor?.document.uri}`
+        );
+        this.publish({ marker: "", eventType: MarkerEventType.RESET });
     }
 
     private search(token: string): Array<vscode.Range> {

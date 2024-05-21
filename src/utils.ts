@@ -1,0 +1,92 @@
+/*
+ * LinkedList, Single, Ordered
+ */
+export class LinkedListItem<T> {
+    constructor(public data: T, public next: undefined | LinkedListItem<T>) {}
+}
+
+export class OrderedLinkedListHead<T> {
+    public next: undefined | LinkedListItem<T>;
+    //
+    constructor(private shouldInsertBefore: (nn: T, toBeInsert: T) => boolean) {
+        this.next = undefined;
+    }
+
+    insert(data: T) {
+        let pre = this;
+        let nn = this.next;
+
+        for (; nn !== undefined; ) {
+            if (this.shouldInsertBefore(nn.data, data)) {
+                break;
+            }
+            // @ts-ignore
+            pre = nn;
+            nn = nn.next;
+        }
+        pre.next = new LinkedListItem<T>(data, nn);
+    }
+
+    popFront(): LinkedListItem<T> | undefined {
+        const nn = this.next;
+        nn === undefined ? null : this.remove(nn);
+        return nn;
+    }
+
+    find(
+        cmp: (t: T) => { match: boolean; shouldContinue: boolean }
+    ): LinkedListItem<T> | undefined {
+        for (let nn = this.next; nn !== undefined; nn = nn.next) {
+            const { match, shouldContinue } = cmp(nn.data);
+            if (match) {
+                return nn;
+            }
+            if (!shouldContinue) {
+                return undefined;
+            }
+        }
+        return undefined;
+    }
+
+    remove(cur: LinkedListItem<T>) {
+        let pre = this;
+        let nn = this.next;
+        for (; nn !== undefined; ) {
+            if (cur === nn) {
+                pre.next = nn.next;
+                return;
+            }
+            // @ts-ignore
+            pre = nn;
+            nn = nn.next;
+        }
+    }
+
+    clear() {
+        this.next = undefined;
+    }
+}
+
+export type OrderedLinkedList<T> = OrderedLinkedListHead<T>;
+
+/*
+ * Singleton
+ */
+
+export class Singleton<T> {
+    private static instance: Singleton<any> | null = null;
+    private singleton: T | undefined;
+
+    private constructor() {}
+
+    static getInstance<T>(): Singleton<T> {
+        if (!Singleton.instance) {
+            Singleton.instance = new Singleton<T>();
+        }
+        return Singleton.instance;
+    }
+
+    getInstanceValue(): T | undefined {
+        return this.singleton;
+    }
+}

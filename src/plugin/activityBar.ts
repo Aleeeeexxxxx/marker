@@ -40,14 +40,14 @@ export class ActivityBar
         const event = context.getEvent();
 
         switch (event.eventType) {
-            case MarkerEventType.postAdd:
+            case MarkerEventType.POST_ADD:
                 this.highlights.add(event.marker);
                 break;
-            case MarkerEventType.postRemove:
+            case MarkerEventType.POST_REMOVE:
                 this.highlights.delete(event.marker);
                 break;
             default:
-                logger.warn(`unknown event, type=${event.eventType}`);
+                logger.warn(`ignore event, type=${event.eventType}`);
                 return;
         }
 
