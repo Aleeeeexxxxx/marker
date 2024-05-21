@@ -4,7 +4,7 @@
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.89.0"
+    "vscode": "^1.88.0"
   },
   "categories": [
     "Other"
@@ -14,19 +14,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "remarker.editor.menu.mark.highlight",
+        "command": "marker.editor.menu.mark.highlight",
         "title": "Highlight"
       },
       {
-        "command": "remarker.editor.menu.mark.remove",
+        "command": "marker.editor.menu.mark.remove",
         "title": "Remove"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "remarker_activitybar",
-          "title": "Remarker Explorer",
+          "id": "marker_activitybar",
+          "title": "Marker Explorer",
           "icon": "media/dep.svg"
         }
       ]
@@ -34,7 +34,7 @@
     "views": {
       "remarker_activitybar": [
         {
-          "id": "remarker_activitybar_explorer",
+          "id": "marker_activitybar_explorer",
           "name": "Remarker Explorer"
         }
       ]
@@ -42,24 +42,24 @@
     "menus": {
       "editor/context": [
         {
-          "submenu": "remarker.editor.menu.mark",
+          "submenu": "marker.editor.menu.mark",
           "group": "1_modification"
         }
       ],
       "remarker.editor.menu.mark": [
         {
           "group": "1_modification",
-          "command": "remarker.editor.menu.mark.highlight"
+          "command": "marker.editor.menu.mark.highlight"
         },
         {
           "group": "1_modification",
-          "command": "remarker.editor.menu.mark.remove"
+          "command": "marker.editor.menu.mark.remove"
         }
       ]
     },
     "submenus": [
       {
-        "id": "remarker.editor.menu.mark",
+        "id": "marker.editor.menu.mark",
         "label": "Mark"
       }
     ]
