@@ -20,6 +20,14 @@
       {
         "command": "marker.editor.menu.mark.remove",
         "title": "Remove"
+      },
+      {
+        "command": "marker.activitybar.remove",
+        "title": "Remove",
+        "icon": {
+          "dark": "media/dark/archive.svg",
+          "light": "media/light/archive.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -27,7 +35,7 @@
         {
           "id": "marker_activitybar",
           "title": "Marker Explorer",
-          "icon": "media/dep.svg"
+          "icon": "media/activityBar.svg"
         }
       ]
     },
@@ -44,6 +52,13 @@
         {
           "submenu": "marker.editor.menu.mark",
           "group": "1_modification"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "marker.activitybar.remove",
+          "when": "view == marker_activitybar_explorer",
+          "group": "inline"
         }
       ],
       "marker.editor.menu.mark": [

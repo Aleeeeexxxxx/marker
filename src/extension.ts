@@ -1,16 +1,21 @@
 import * as vscode from "vscode";
-import { TokenManager } from "./token";
 import { ActivityBar } from "./plugin/activityBar";
 import { Decorator } from "./plugin/decorator";
-import { logger } from "./logger";
+import { LogLevel, logger } from "./logger";
+import { registerVSCodeExtensionCommands } from "./commands";
+import { MarkerManager } from "./markerMngr";
 
 export function activate(context: vscode.ExtensionContext) {
+    logger.setLogLevel(LogLevel.DEBUG);
+
     logger.info("extension activited!");
 
-    const tokenMngr = new TokenManager();
+    const mngr = new MarkerManager();
     const activityBarProvider = new ActivityBar();
 
-    tokenMngr.register(new Decorator(tokenMngr)).register(activityBarProvider);
+    mngr.register(new Decorator(mngr), activityBarProvider);
+
+    registerVSCodeExtensionCommands(context, mngr);
 
     vscode.window.registerTreeDataProvider(
         "marker_activitybar_explorer",
@@ -18,30 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "marker.editor.menu.mark.highlight",
-            () => {
-                logger.debug(`marker.editor.menu.mark.highlight triggered`);
-
-                if (!vscode.window.activeTextEditor) {
-                    return;
-                }
-                const { document, selection } = vscode.window.activeTextEditor;
-                tokenMngr.add(document.getText(selection));
-            }
-        ),
-
-        vscode.commands.registerCommand(
-            "marker.editor.menu.mark.remove",
-            () => {
-                if (!vscode.window.activeTextEditor) {
-                    return;
-                }
-                const { document, selection } = vscode.window.activeTextEditor;
-                tokenMngr.remove(document.getText(selection));
-            }
-        ),
-
         vscode.window.onDidChangeActiveTextEditor((editor) => {
             if (editor) {
                 console.log(
