@@ -1,45 +1,34 @@
+import { EventEmitter } from "events";
 
-export interface IPlugin<T> {
-    handle(context: PluginEventContext<T>): void;
+const eventName = "__marker_plugin_event";
+
+export interface IPluginEvent<T> {
+    version: number;
+    payload: T;
 }
 
-export class PluginEventContext<T> {
-    private aborted: boolean;
-
-    constructor(private event: T, private plugins: IPlugin<T>[]) {
-        this.aborted = false;
-    }
-
-    getEvent(): T {
-        return this.event;
-    }
-
-    abort() {
-        this.aborted = true;
-    }
-
-    run(): void {
-        for (let i = 0; i < this.plugins.length; i++) {
-            const plugin = this.plugins[i];
-            plugin.handle(this);
-
-            if (this.aborted) {
-                return;
-            }
-        }
-    }
+export interface IPlugin<T> {
+    name(): string;
+    handleEvent(event: IPluginEvent<T>): void;
 }
 
 export class PluginManager<T> {
-    private plugins: IPlugin<T>[] = [];
+    private emitter: EventEmitter = new EventEmitter();
+    private version: number = 0;
+    private plugins: Map<string, IPlugin<T>> = new Map();
 
-    register(...plugin: IPlugin<T>[]): PluginManager<T> {
-        this.plugins = this.plugins.concat(plugin);
-        return this;
+    register(...plugins: IPlugin<T>[]): void {
+        plugins.forEach((plugin) => {
+            if (this.plugins.has(plugin.name())) {
+                return;
+            }
+            this.emitter.addListener(eventName, plugin.handleEvent.bind(plugin));
+            this.plugins.set(plugin.name(), plugin);
+        });
     }
 
-    publish(event: T) {
-        const context = new PluginEventContext<T>(event, this.plugins);
-        context.run();
+    publish(payload: T): void {
+        const version = this.version++;
+        this.emitter.emit(eventName, { version, payload });
     }
 }

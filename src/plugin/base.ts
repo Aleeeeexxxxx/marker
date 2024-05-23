@@ -1,27 +1,38 @@
 import { logger } from "../logger";
-import { IMarkerEvent, MarkerEventType, MarkerPlugin } from "../markerMngr";
-import { PluginEventContext } from "../plugin";
+import {
+    IMarkerEventPayload,
+    MarkerEvent,
+    MarkerEventType,
+    MarkerPlugin,
+} from "../markerMngr";
 
 export abstract class IPluginBase implements MarkerPlugin {
-    handle(context: PluginEventContext<IMarkerEvent>): void {
-        const event = context.getEvent();
+    abstract name(): string;
 
-        switch (event.eventType) {
-            case MarkerEventType.POST_ADD:
-                this.postAdd(context);
-                break;
-            case MarkerEventType.POST_REMOVE:
-                this.postRemove(context);
-                break;
-            case MarkerEventType.RESET:
-                this.reset(context);
-                break;
-            default:
-                logger.warn(`unknown event, type=${event.eventType}`);
-                return;
+    handleEvent(event: MarkerEvent): void {
+        try {
+            const payload = event.payload;
+            switch (payload.event) {
+                case MarkerEventType.POST_ADD:
+                    this.postAdd(payload);
+                    break;
+                case MarkerEventType.POST_REMOVE:
+                    this.postRemove(payload);
+                    break;
+                case MarkerEventType.RESET:
+                    this.reset(payload);
+                    break;
+                default:
+                    logger.warn(`unknown event, type=${payload.event}`);
+                    return;
+            }
+        } catch (e) {
+            logger.error(e as Error);
         }
+        
     }
-    abstract reset(context: PluginEventContext<IMarkerEvent>): void;
-    abstract postAdd(context: PluginEventContext<IMarkerEvent>): void;
-    abstract postRemove(context: PluginEventContext<IMarkerEvent>): void;
+
+    abstract reset(event: IMarkerEventPayload): void;
+    abstract postAdd(event: IMarkerEventPayload): void;
+    abstract postRemove(event: IMarkerEventPayload): void;
 }

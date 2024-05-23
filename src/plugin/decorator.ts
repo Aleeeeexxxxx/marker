@@ -1,6 +1,9 @@
 import { logger } from "../logger";
-import { IMarkerEvent, MarkerManager, MarkerPlugin } from "../markerMngr";
-import { PluginEventContext } from "../plugin";
+import {
+    IMarkerEventPayload,
+    MarkerManager,
+    MarkerPlugin,
+} from "../markerMngr";
 import * as vscode from "vscode";
 import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
 import { IPluginBase } from "./base";
@@ -85,21 +88,24 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
         DecorationItem
     >();
 
-    postAdd(context: PluginEventContext<IMarkerEvent>): void {
+    name(): string {
+        return "Decorator";
+    }
+
+    postAdd(event: IMarkerEventPayload): void {
         const nn = this.avaiable.popFront();
         if (!nn) {
-            context.abort();
             return;
         }
 
         const renderOp = nn.data;
-        const marker = context.getEvent().marker;
+        const marker = event.marker as string;
         this.decorateMarker(marker, renderOp);
         logger.info(`decorate ${renderOp.name} for ${marker}`);
     }
 
-    postRemove(context: PluginEventContext<IMarkerEvent>): void {
-        const marker = context.getEvent().marker;
+    postRemove(event: IMarkerEventPayload): void {
+        const marker = event.marker as string;
         const item = this.decoratedItems.get(marker);
         if (!item) {
             return;
@@ -109,7 +115,7 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
         this.avaiable.insert(item.renderOp);
     }
 
-    reset(context: PluginEventContext<IMarkerEvent>): void {
+    reset(event: IMarkerEventPayload): void {
         this.decoratedItems.forEach((val, marker) => {
             // val.decorationType.dispose();
             this.decorateMarker(marker, val.renderOp);
