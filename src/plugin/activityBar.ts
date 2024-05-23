@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
-import { IMarkerEvent, MarkerEventType, MarkerPlugin } from "../markerMngr";
-import { PluginEventContext } from "../plugin";
+import {
+    IMarkerEventPayload,
+    MarkerEvent,
+    MarkerEventType,
+    MarkerPlugin,
+} from "../markerMngr";
 import { logger } from "../logger";
 
 /**
@@ -12,7 +16,7 @@ export class ActivityBar
     private highlights: Set<string> = new Set<string>();
     private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
         new vscode.EventEmitter<undefined>();
-        
+
     /**
      * Implement vscode.TreeDataProvider
      */
@@ -36,18 +40,22 @@ export class ActivityBar
     /**
      * Implement MarkerPlguin
      */
-    handle(context: PluginEventContext<IMarkerEvent>): void {
-        const event = context.getEvent();
 
-        switch (event.eventType) {
+    name(): string {
+        return "Activity Bar";
+    }
+
+    handleEvent(event: MarkerEvent): void {
+        const payload = event.payload;
+        switch (payload.event) {
             case MarkerEventType.POST_ADD:
-                this.highlights.add(event.marker);
+                this.highlights.add(payload.marker as string);
                 break;
             case MarkerEventType.POST_REMOVE:
-                this.highlights.delete(event.marker);
+                this.highlights.delete(payload.marker as string);
                 break;
             default:
-                logger.warn(`ignore event, type=${event.eventType}`);
+                logger.warn(`ignore event, type=${payload.event}`);
                 return;
         }
 

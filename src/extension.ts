@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
     const mngr = new MarkerManager();
     const activityBarProvider = new ActivityBar();
 
-    mngr.register(new Decorator(mngr), activityBarProvider);
+    mngr.register(new Decorator(mngr), activityBarProvider); 
 
     registerVSCodeExtensionCommands(context, mngr);
 
@@ -26,7 +26,9 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.onDidChangeActiveTextEditor((editor) => mngr.reset()),
 
         vscode.workspace.onDidChangeTextDocument((event) => {
-            console.log(`event: ${JSON.stringify(event)}`);
+            logger.debug(`event: ${JSON.stringify(event)}`);
+
+            const editor = vscode.window.activeTextEditor;
         })
     );
 }

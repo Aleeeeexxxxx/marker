@@ -1,4 +1,4 @@
-import { IPlugin, PluginManager } from "./plugin";
+import { IPlugin, IPluginEvent, PluginManager } from "./plugin";
 import * as vscode from "vscode";
 import { logger } from "./logger";
 
@@ -8,58 +8,69 @@ export enum MarkerEventType {
     RESET,
 }
 
-export interface IMarkerEvent {
-    marker: string;
-    eventType: MarkerEventType;
+export interface IMarkerEventPayload {
+    marker?: string;
+    event: MarkerEventType;
 }
+export type MarkerEvent = IPluginEvent<IMarkerEventPayload>;
 
-export type MarkerPlugin = IPlugin<IMarkerEvent>;
+export type MarkerPlugin = IPlugin<IMarkerEventPayload>;
 
-export class MarkerManager extends PluginManager<IMarkerEvent> {
+export class MarkerManager extends PluginManager<IMarkerEventPayload> {
     public highlights: Map<string, Array<vscode.Range>> = new Map<
         string,
         Array<vscode.Range>
     >();
 
-    add(marker: string) {
-        if (this.highlights.has(marker)) {
-            logger.warn(`add an existing marker, ${marker}`);
-            return;
-        }
-        this.highlights.set(marker, this.search(marker));
-        logger.info(`marker added, ${marker}`);
+    private withEmitPlugin(
+        fn: () => void,
+        event: MarkerEventType,
+        marker?: string
+    ) {
+        fn();
+        this.publish({ event, marker });
+    }
 
-        this.publish({ marker: marker, eventType: MarkerEventType.POST_ADD });
+    add(marker: string) {
+        this.withEmitPlugin(
+            () => {
+                if (this.highlights.has(marker)) {
+                    logger.warn(`duplicated marker added, marker=${marker}`);
+                    return;
+                }
+                this.highlights.set(marker, this.search(marker));
+            },
+            MarkerEventType.POST_ADD,
+            marker
+        );
     }
 
     remove(marker: string) {
-        const ranges = this.highlights.get(marker);
-        if (!ranges) {
-            logger.warn(`remove an non-existing marker, ${marker}`);
-            return;
-        }
-        this.highlights.delete(marker);
-        logger.info(`marker removed, ${marker}`);
-
-        this.publish({
-            marker: marker,
-            eventType: MarkerEventType.POST_REMOVE,
-        });
+        this.withEmitPlugin(
+            () => {
+                const ranges = this.highlights.get(marker);
+                if (!ranges) {
+                    logger.warn(
+                        `remove an non-existing marker, marker=${marker}`
+                    );
+                    return;
+                }
+                this.highlights.delete(marker);
+            },
+            MarkerEventType.POST_REMOVE,
+            marker
+        );
     }
 
     reset() {
-        if (!vscode.window.activeTextEditor) {
-            return;
-        }
-
-        for (const key of this.highlights.keys()) {
-            this.highlights.set(key, this.search(key));
-        }
-
-        logger.info(
-            `mngr reset for ${vscode.window.activeTextEditor?.document.uri}`
-        );
-        this.publish({ marker: "", eventType: MarkerEventType.RESET });
+        this.withEmitPlugin(() => {
+            if (!vscode.window.activeTextEditor) {
+                return;
+            }
+            for (const key of this.highlights.keys()) {
+                this.highlights.set(key, this.search(key));
+            }
+        }, MarkerEventType.POST_REMOVE);
     }
 
     private search(token: string): Array<vscode.Range> {
@@ -70,9 +81,9 @@ export class MarkerManager extends PluginManager<IMarkerEvent> {
         const { document } = vscode.window.activeTextEditor;
         const text = document.getText();
 
-        const matches = MarkerManager.__search(token, text);
+        const matches = this.__search(token, text);
         logger.debug(
-            `token ${token} matches in ${document.uri.toString()}: ${matches.join(
+            `token ${token} matches in ${document.uri.toString()}, start index=${matches.join(
                 ","
             )}`
         );
@@ -85,7 +96,7 @@ export class MarkerManager extends PluginManager<IMarkerEvent> {
         });
     }
 
-    static __search(token: string, text: string): Array<number> {
+    private __search(token: string, text: string): Array<number> {
         const matches = new Array<number>();
         let index = 0;
         while (true) {
