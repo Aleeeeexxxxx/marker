@@ -4,6 +4,7 @@ import { Decorator } from "./plugin/decorator";
 import { LogLevel, logger } from "./logger";
 import { registerVSCodeExtensionCommands } from "./commands";
 import { MarkerManager } from "./markerMngr";
+import { DelayRunner } from "./utils";
 
 export function activate(context: vscode.ExtensionContext) {
     logger.setLogLevel(LogLevel.DEBUG);
@@ -12,8 +13,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const mngr = new MarkerManager();
     const activityBarProvider = new ActivityBar();
+    const onDidChangeRunner = new DelayRunner(500, mngr.reset.bind(mngr));
 
-    mngr.register(new Decorator(mngr), activityBarProvider); 
+    mngr.register(new Decorator(mngr), activityBarProvider);
 
     registerVSCodeExtensionCommands(context, mngr);
 
@@ -26,9 +28,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.onDidChangeActiveTextEditor((editor) => mngr.reset()),
 
         vscode.workspace.onDidChangeTextDocument((event) => {
-            logger.debug(`event: ${JSON.stringify(event)}`);
-
             const editor = vscode.window.activeTextEditor;
+            if (event.document.uri !== editor?.document.uri) {
+                return;
+            }
+            onDidChangeRunner.run();
         })
     );
 }

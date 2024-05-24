@@ -90,3 +90,21 @@ export class Singleton<T> {
         return this.singleton;
     }
 }
+
+/**
+ * Delayer
+ */
+
+export class DelayRunner {
+    private timer: NodeJS.Timeout | undefined;
+
+    constructor(private ms: number, private handler: () => void) {}
+
+    run() {
+        if (this.timer === undefined) {
+            this.timer = setTimeout(this.handler, this.ms);
+        } else {
+            this.timer.refresh();
+        }
+    }
+}

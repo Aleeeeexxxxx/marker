@@ -117,7 +117,7 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
 
     reset(event: IMarkerEventPayload): void {
         this.decoratedItems.forEach((val, marker) => {
-            // val.decorationType.dispose();
+            val.decorationType.dispose();
             this.decorateMarker(marker, val.renderOp);
         });
     }
