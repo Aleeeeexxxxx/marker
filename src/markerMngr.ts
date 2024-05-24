@@ -70,7 +70,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
             for (const key of this.highlights.keys()) {
                 this.highlights.set(key, this.search(key));
             }
-        }, MarkerEventType.POST_REMOVE);
+        }, MarkerEventType.RESET);
     }
 
     private search(token: string): Array<vscode.Range> {
