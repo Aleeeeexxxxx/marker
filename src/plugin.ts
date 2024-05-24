@@ -31,4 +31,8 @@ export class PluginManager<T> {
         const version = this.version++;
         this.emitter.emit(eventName, { version, payload });
     }
+
+    getCurrentVersion(): number {
+        return this.version;
+    }
 }
