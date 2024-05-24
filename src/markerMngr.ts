@@ -2,6 +2,8 @@ import { IPlugin, IPluginEvent, PluginManager } from "./plugin";
 import * as vscode from "vscode";
 import { logger } from "./logger";
 
+const MAX_ITEMS = 10;
+
 export enum MarkerEventType {
     POST_ADD,
     POST_REMOVE,
@@ -22,55 +24,40 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         Array<vscode.Range>
     >();
 
-    private withEmitPlugin(
-        fn: () => void,
-        event: MarkerEventType,
-        marker?: string
-    ) {
-        fn();
-        this.publish({ event, marker });
-    }
-
     add(marker: string) {
-        this.withEmitPlugin(
-            () => {
-                if (this.highlights.has(marker)) {
-                    logger.warn(`duplicated marker added, marker=${marker}`);
-                    return;
-                }
-                this.highlights.set(marker, this.search(marker));
-            },
-            MarkerEventType.POST_ADD,
-            marker
-        );
+        if (this.highlights.size >= MAX_ITEMS) {
+            vscode.window.showInformationMessage(
+                "The number of markers exceeds the limit."
+            );
+            return;
+        }
+
+        if (this.highlights.has(marker)) {
+            logger.warn(`duplicated marker added, marker=${marker}`);
+            return;
+        }
+        this.highlights.set(marker, this.search(marker));
+        this.publish({ event: MarkerEventType.POST_ADD, marker });
     }
 
     remove(marker: string) {
-        this.withEmitPlugin(
-            () => {
-                const ranges = this.highlights.get(marker);
-                if (!ranges) {
-                    logger.warn(
-                        `remove an non-existing marker, marker=${marker}`
-                    );
-                    return;
-                }
-                this.highlights.delete(marker);
-            },
-            MarkerEventType.POST_REMOVE,
-            marker
-        );
+        const ranges = this.highlights.get(marker);
+        if (!ranges) {
+            logger.warn(`remove an non-existing marker, marker=${marker}`);
+            return;
+        }
+        this.highlights.delete(marker);
+        this.publish({ event: MarkerEventType.POST_REMOVE, marker });
     }
 
     reset() {
-        this.withEmitPlugin(() => {
-            if (!vscode.window.activeTextEditor) {
-                return;
-            }
-            for (const key of this.highlights.keys()) {
-                this.highlights.set(key, this.search(key));
-            }
-        }, MarkerEventType.RESET);
+        if (!vscode.window.activeTextEditor) {
+            return;
+        }
+        for (const key of this.highlights.keys()) {
+            this.highlights.set(key, this.search(key));
+        }
+        this.publish({ event: MarkerEventType.RESET });
     }
 
     private search(token: string): Array<vscode.Range> {

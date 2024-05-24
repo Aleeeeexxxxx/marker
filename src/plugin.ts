@@ -22,14 +22,17 @@ export class PluginManager<T> {
             if (this.plugins.has(plugin.name())) {
                 return;
             }
-            this.emitter.addListener(eventName, plugin.handleEvent.bind(plugin));
+            this.emitter.addListener(
+                eventName,
+                plugin.handleEvent.bind(plugin)
+            );
             this.plugins.set(plugin.name(), plugin);
         });
     }
 
     publish(payload: T): void {
-        const version = this.version++;
-        this.emitter.emit(eventName, { version, payload });
+        this.version++;
+        this.emitter.emit(eventName, { version: this.version, payload });
     }
 
     getCurrentVersion(): number {
