@@ -1,6 +1,7 @@
 import { logger } from "../logger";
 import {
     IMarkerEventPayload,
+    MarkerEvent,
     MarkerManager,
     MarkerPlugin,
 } from "../markerMngr";
@@ -90,6 +91,10 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
 
     name(): string {
         return "Decorator";
+    }
+
+    preCheck(event: MarkerEvent): boolean {
+        return this.mngr.getCurrentVersion() === event.version;
     }
 
     postAdd(event: IMarkerEventPayload): void {
