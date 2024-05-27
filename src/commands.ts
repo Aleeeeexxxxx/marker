@@ -19,7 +19,12 @@ export function registerVSCodeExtensionCommands(
                     return;
                 }
                 const { document, selection } = vscode.window.activeTextEditor;
-                mngr.add(document.getText(selection));
+                const selected = document.getText(selection);
+                if (selected.length === 0) {
+                    vscode.window.showInformationMessage("Highlight requires selection.");
+                    return;
+                }
+                mngr.add(selected);
             },
         },
         {
