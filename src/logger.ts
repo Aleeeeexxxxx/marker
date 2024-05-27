@@ -7,11 +7,18 @@ export enum LogLevel {
     DEBUG,
 }
 
-export const extensionOutputChannel =
-    vscode.window.createOutputChannel("Easy Marker");
+export type LoggerOutputType = (msg: string) => void;
+
+export const redPrefix = "\x1b[31m";
+export const redSuffix = "\x1b[0m";
 
 class Logger {
     private logLevel: LogLevel = LogLevel.INFO;
+    private output?: LoggerOutputType;
+
+    setOutput(output: LoggerOutputType) {
+        this.output = output;
+    }
 
     setLogLevel(lvl: LogLevel) {
         this.logLevel = lvl;
@@ -57,10 +64,14 @@ class Logger {
         msg = `[${level} - ${formatTime(new Date())}] ${msg}`;
 
         if (level === "ERROR") {
-            msg = `\x1b[31m${msg}\x1b[0m`;
+            msg = `${redPrefix}${msg}${redSuffix}`;
         }
 
-        extensionOutputChannel.appendLine(msg);
+        if (!this.output) {
+            this.output = console.log;
+        }
+
+        this.output(msg);
     }
 }
 

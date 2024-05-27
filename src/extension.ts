@@ -1,20 +1,25 @@
 import * as vscode from "vscode";
 import { ActivityBar } from "./plugin/activityBar";
 import { Decorator } from "./plugin/decorator";
-import { LogLevel, extensionOutputChannel, logger } from "./logger";
+import { LogLevel, logger } from "./logger";
 import { registerVSCodeExtensionCommands } from "./commands";
 import { MarkerManager } from "./markerMngr";
 import { DelayRunner } from "./utils";
 
 export function activate(context: vscode.ExtensionContext) {
-    logger.setLogLevel(LogLevel.DEBUG);
+    const extensionOutputChannel =
+        vscode.window.createOutputChannel("Easy Marker");
     extensionOutputChannel.show();
+
+    logger.setLogLevel(LogLevel.DEBUG);
+    logger.setOutput(
+        extensionOutputChannel.appendLine.bind(extensionOutputChannel)
+    );
 
     logger.info("extension activited!");
 
     const mngr = new MarkerManager();
     const activityBarProvider = new ActivityBar();
-    const onDidChangeRunner = new DelayRunner(500, mngr.reset.bind(mngr));
 
     mngr.register(new Decorator(mngr), activityBarProvider);
 
@@ -25,8 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
         activityBarProvider
     );
 
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
+    const changeEditorHandler = vscode.window.onDidChangeActiveTextEditor(
+        (editor) => {
             const uri = editor?.document.uri;
             // ignore the change of output channel
             if (uri === undefined || !isFileURI(uri)) {
@@ -36,9 +41,12 @@ export function activate(context: vscode.ExtensionContext) {
                 logger.info(`editor changed, current=${uri.toString()}`);
                 mngr.reset(editor);
             }
-        }),
+        }
+    );
 
-        vscode.workspace.onDidChangeTextDocument((event) => {
+    const onDidChangeRunner = new DelayRunner(500, mngr.reset.bind(mngr));
+    const changeTextHandler = vscode.workspace.onDidChangeTextDocument(
+        (event) => {
             // ignore the change of output channel
             if (!isFileURI(event?.document.uri)) {
                 return;
@@ -50,8 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             onDidChangeRunner.run();
-        })
+        }
     );
+
+    context.subscriptions.push(changeEditorHandler, changeTextHandler);
 }
 
 // This method is called when your extension is deactivated
