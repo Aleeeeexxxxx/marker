@@ -24,6 +24,17 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         Array<vscode.Range>
     >();
 
+    private currentOpenFileURI: string | undefined;
+
+    compareUriOrSet(uri: vscode.Uri): boolean {
+        const current = uri.toString();
+        if (this.currentOpenFileURI === current) {
+            return true;
+        }
+        this.currentOpenFileURI = current;
+        return false;
+    }
+
     add(marker: string) {
         if (this.highlights.size >= MAX_ITEMS) {
             vscode.window.showInformationMessage(
@@ -50,7 +61,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         this.publish({ event: MarkerEventType.POST_REMOVE, marker });
     }
 
-    reset() {
+    reset(editor?: vscode.TextEditor) {
         if (!vscode.window.activeTextEditor) {
             return;
         }

@@ -55,7 +55,7 @@ export class ActivityBar
                 this.highlights.delete(payload.marker as string);
                 break;
             default:
-                logger.warn(`ignore event, type=${payload.event}`);
+                logger.debug(`activity bar ignore event, type=${payload.event}`);
                 return;
         }
 

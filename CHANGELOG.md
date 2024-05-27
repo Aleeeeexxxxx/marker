@@ -10,3 +10,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ### 0.0.3
 - Support highlight seleceted words
+
+### 0.0.4
+- Fix: Output logs in vscode channel

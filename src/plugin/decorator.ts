@@ -17,6 +17,11 @@ interface RenderOption {
 
 const defaultRenderOptions: RenderOption[] = [
     {
+        name: "Dark Gray",
+        backgroundColor: "#34495E",
+        color: "#FFFFFF",
+    },
+    {
         name: "Red",
         backgroundColor: "#FF5733",
         color: "#FFFFFF",
@@ -61,11 +66,6 @@ const defaultRenderOptions: RenderOption[] = [
         backgroundColor: "#1ABC9C",
         color: "#FFFFFF",
     },
-    {
-        name: "Dark Gray",
-        backgroundColor: "#34495E",
-        color: "#FFFFFF",
-    },
 ];
 
 interface DecorationItem {
@@ -106,7 +106,7 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
         const renderOp = nn.data;
         const marker = event.marker as string;
         this.decorateMarker(marker, renderOp);
-        logger.info(`decorate ${renderOp.name} for ${marker}`);
+        logger.info(`decorate [${renderOp.name}] for ${marker}`);
     }
 
     postRemove(event: IMarkerEventPayload): void {
