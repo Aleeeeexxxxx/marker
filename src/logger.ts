@@ -1,9 +1,14 @@
+import * as vscode from "vscode";
+
 export enum LogLevel {
     ERROR,
     WARNING,
     INFO,
     DEBUG,
 }
+
+export const extensionOutputChannel =
+    vscode.window.createOutputChannel("Easy Marker");
 
 class Logger {
     private logLevel: LogLevel = LogLevel.INFO;
@@ -52,10 +57,10 @@ class Logger {
         msg = `[${level} - ${formatTime(new Date())}] ${msg}`;
 
         if (level === "ERROR") {
-            console.log("\x1b[31m%s\x1b[0m", msg);
-        } else {
-            console.log(msg);
+            msg = `\x1b[31m${msg}\x1b[0m`;
         }
+
+        extensionOutputChannel.appendLine(msg);
     }
 }
 
