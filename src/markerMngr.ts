@@ -35,7 +35,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         return false;
     }
 
-    add(marker: string) {
+    addHighlight(marker: string) {
         if (this.highlights.size >= MAX_ITEMS) {
             vscode.window.showInformationMessage(
                 "The number of markers exceeds the limit."
@@ -47,11 +47,11 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
             logger.warn(`duplicated marker added, marker=${marker}`);
             return;
         }
-        this.highlights.set(marker, this.search(marker));
+        this.highlights.set(marker, this.searchHighlightInEditor(marker));
         this.publish({ event: MarkerEventType.POST_ADD, marker });
     }
 
-    remove(marker: string) {
+    removeHighlight(marker: string) {
         const ranges = this.highlights.get(marker);
         if (!ranges) {
             logger.warn(`remove an non-existing marker, marker=${marker}`);
@@ -61,17 +61,17 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         this.publish({ event: MarkerEventType.POST_REMOVE, marker });
     }
 
-    reset(editor?: vscode.TextEditor) {
+    resetHighlight(editor?: vscode.TextEditor) {
         if (!vscode.window.activeTextEditor) {
             return;
         }
         for (const key of this.highlights.keys()) {
-            this.highlights.set(key, this.search(key));
+            this.highlights.set(key, this.searchHighlightInEditor(key));
         }
         this.publish({ event: MarkerEventType.RESET });
     }
 
-    private search(token: string): Array<vscode.Range> {
+    private searchHighlightInEditor(token: string): Array<vscode.Range> {
         if (!vscode.window.activeTextEditor || token.length === 0) {
             return [];
         }
@@ -79,7 +79,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         const { document } = vscode.window.activeTextEditor;
         const text = document.getText();
 
-        const matches = this.__search(token, text);
+        const matches = this.__searchHighlightInEditor(token, text);
         logger.debug(
             `token ${token} matches in ${document.uri.toString()}, start index=${matches.join(
                 ","
@@ -94,7 +94,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         });
     }
 
-    private __search(token: string, text: string): Array<number> {
+    private __searchHighlightInEditor(token: string, text: string): Array<number> {
         const matches = new Array<number>();
         let index = 0;
         while (true) {

@@ -19,14 +19,14 @@
     "commands": [
       {
         "command": "marker.editor.menu.mark.highlight",
-        "title": "Highlight"
+        "title": "Highlight Selection"
       },
       {
         "command": "marker.editor.menu.mark.remove",
         "title": "Remove"
       },
       {
-        "command": "marker.activitybar.remove",
+        "command": "marker.activitybar.highlight.remove",
         "title": "Remove",
         "icon": {
           "dark": "media/dark/archive.svg",
@@ -46,7 +46,11 @@
     "views": {
       "marker_activitybar": [
         {
-          "id": "marker_activitybar_explorer",
+          "id": "activitybar_highlight_explorer",
+          "name": "Highlight Explorer"
+        },
+        {
+          "id": "activitybar_marker_explorer",
           "name": "Marker Explorer"
         }
       ]
@@ -60,8 +64,8 @@
       ],
       "view/item/context": [
         {
-          "command": "marker.activitybar.remove",
-          "when": "view == marker_activitybar_explorer",
+          "command": "marker.activitybar.highlight.remove",
+          "when": "view == activitybar_highlight_explorer && viewItem == highlight_item",
           "group": "inline"
         }
       ],

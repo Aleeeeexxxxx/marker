@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ActivityBar } from "./plugin/activityBar";
+import { HighlightExplorer } from "./plugin/highlightExplorer";
 import { Decorator } from "./plugin/decorator";
 import { LogLevel, logger } from "./logger";
 import { registerVSCodeExtensionCommands } from "./commands";
@@ -16,20 +16,36 @@ export function activate(context: vscode.ExtensionContext) {
         extensionOutputChannel.appendLine.bind(extensionOutputChannel)
     );
 
-    logger.info("extension activited!");
-
     const mngr = new MarkerManager();
-    const activityBarProvider = new ActivityBar();
+    const activityBarProvider = new HighlightExplorer();
 
     mngr.register(new Decorator(mngr), activityBarProvider);
 
     registerVSCodeExtensionCommands(context, mngr);
+    registerEventHandlers(context, mngr);
 
     vscode.window.registerTreeDataProvider(
-        "marker_activitybar_explorer",
+        "activitybar_highlight_explorer",
         activityBarProvider
     );
 
+    logger.info("extension activited!");
+}
+
+// This method is called when your extension is deactivated
+export function deactivate() {}
+
+function isFileURI(uri: vscode.Uri | undefined): boolean {
+    if (uri === undefined) {
+        return false;
+    }
+    return uri.toString().startsWith("file://");
+}
+
+function registerEventHandlers(
+    context: vscode.ExtensionContext,
+    mngr: MarkerManager
+) {
     const changeEditorHandler = vscode.window.onDidChangeActiveTextEditor(
         (editor) => {
             const uri = editor?.document.uri;
@@ -39,12 +55,12 @@ export function activate(context: vscode.ExtensionContext) {
             }
             if (!mngr.compareUriOrSet(uri)) {
                 logger.info(`editor changed, current=${uri.toString()}`);
-                mngr.reset(editor);
+                mngr.resetHighlight(editor);
             }
         }
     );
 
-    const onDidChangeRunner = new DelayRunner(500, mngr.reset.bind(mngr));
+    const onDidChangeRunner = new DelayRunner(500, mngr.resetHighlight.bind(mngr));
     const changeTextHandler = vscode.workspace.onDidChangeTextDocument(
         (event) => {
             // ignore the change of output channel
@@ -60,16 +76,5 @@ export function activate(context: vscode.ExtensionContext) {
             onDidChangeRunner.run();
         }
     );
-
     context.subscriptions.push(changeEditorHandler, changeTextHandler);
-}
-
-// This method is called when your extension is deactivated
-export function deactivate() {}
-
-function isFileURI(uri: vscode.Uri | undefined): boolean {
-    if (uri === undefined) {
-        return false;
-    }
-    return uri.toString().startsWith("file://");
 }

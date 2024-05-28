@@ -24,7 +24,7 @@ export function registerVSCodeExtensionCommands(
                     vscode.window.showInformationMessage("Highlight requires selection.");
                     return;
                 }
-                mngr.add(selected);
+                mngr.addHighlight(selected);
             },
         },
         {
@@ -34,19 +34,19 @@ export function registerVSCodeExtensionCommands(
                     return;
                 }
                 const { document, selection } = vscode.window.activeTextEditor;
-                mngr.remove(document.getText(selection));
+                mngr.removeHighlight(document.getText(selection));
             },
         },
         {
-            command: "marker.activitybar.remove",
+            command: "marker.activitybar.highlight.remove",
             handler: (...args) => {
                 logger.debug(
-                    `args for marker.activitybar.remove: ${JSON.stringify(
+                    `args for marker.activitybar.highlight.remove: ${JSON.stringify(
                         args
                     )}`
                 );
                 const { label } = args[0][0] as { label: string };
-                mngr.remove(label);
+                mngr.removeHighlight(label);
             },
         },
     ];
