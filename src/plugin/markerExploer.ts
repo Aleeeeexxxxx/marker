@@ -2,19 +2,22 @@ import * as vscode from "vscode";
 import {
     MarkerEvent,
     MarkerEventType,
+    MarkerManager,
     MarkerPlugin,
-} from "../markerMngr";
+} from "../mngr";
 import { logger } from "../logger";
+import { cmdGoToLineInFile } from "../commands";
 
 /**
  * HighlightExplorer
  */
 export class MarkerExplorer
-    implements MarkerPlugin, vscode.TreeDataProvider<vscode.TreeItem>
+    implements MarkerPlugin, vscode.TreeDataProvider<MarkerItem>
 {
-    private highlights: Map<string, MarkerItem> = new Map();
     private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
         new vscode.EventEmitter<undefined>();
+
+    constructor(private mngr: MarkerManager) {}
 
     /**
      * Implement vscode.TreeDataProvider
@@ -23,15 +26,34 @@ export class MarkerExplorer
         this._onDidChangeTreeData.event;
 
     getTreeItem(
-        element: vscode.TreeItem
+        element: MarkerItem
     ): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
 
     getChildren(
-        element?: vscode.TreeItem | undefined
-    ): vscode.ProviderResult<vscode.TreeItem[]> {
-        return Array.from(this.highlights.values());
+        element?: MarkerItem | undefined
+    ): vscode.ProviderResult<MarkerItem[]> {
+        const array = new Array<MarkerItem>();
+        this.mngr.marker.__markers.forEach((val, uri) => {
+            val.forEach((item) => {
+                if (!item.broken) {
+                    array.push(
+                        new MarkerItem(
+                            item.token +
+                                " \r\n " +
+                                getFileName(uri) +
+                                "#" +
+                                item.position.line,
+                            uri,
+                            item.position.line,
+                            item.token
+                        )
+                    );
+                }
+            });
+        });
+        return array;
     }
 
     /**
@@ -46,15 +68,15 @@ export class MarkerExplorer
         const payload = event.payload;
         const marker = payload.marker as string;
         switch (payload.event) {
-            case MarkerEventType.POST_ADD:
-                this.highlights.set(marker, new MarkerItem(marker));
+            case MarkerEventType.POST_ADD_MARKER:
                 break;
-            case MarkerEventType.POST_REMOVE:
-                this.highlights.delete(marker);
+            case MarkerEventType.POST_RESET_MARKER:
+                break;
+            case MarkerEventType.POST_DELETE_MARKER:
                 break;
             default:
                 logger.debug(
-                    `activity bar ignore event, type=${payload.event}`
+                    `marker explorer ignore event, type=${payload.event}`
                 );
                 return;
         }
@@ -71,10 +93,27 @@ class MarkerItem extends vscode.TreeItem {
     // should equal to when clause of acitivity bar
     static contextValue = "marker_item";
 
-    constructor(name: string) {
-        super(name);
+    public uri: string;
+    public token: string;
+
+    constructor(label: string, uri: string, line: number, token: string) {
+        super(label);
 
         this.contextValue = MarkerItem.contextValue;
-        this.tooltip = name;
+        this.tooltip = label;
+        this.id = `${token}##${uri}`;
+        this.uri = uri;
+        this.token = token;
+
+        this.command = {
+            title: "open file",
+            command: cmdGoToLineInFile,
+            arguments: [uri.substring("file://".length), line],
+        };
     }
+}
+
+function getFileName(uri: string): string {
+    const items = uri.split("/");
+    return items.at(items.length - 1) as string;
 }

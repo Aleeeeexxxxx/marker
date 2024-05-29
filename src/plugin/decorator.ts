@@ -4,7 +4,7 @@ import {
     MarkerEvent,
     MarkerManager,
     MarkerPlugin,
-} from "../markerMngr";
+} from "../mngr";
 import * as vscode from "vscode";
 import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
 import { IPluginBase } from "./base";
@@ -136,7 +136,7 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
 
         vscode.window.activeTextEditor?.setDecorations(
             decorationType,
-            this.mngr.highlights.get(marker) || []
+            this.mngr.highlight.highlights.get(marker) || []
         );
 
         this.decoratedItems.set(marker, { renderOp, decorationType });

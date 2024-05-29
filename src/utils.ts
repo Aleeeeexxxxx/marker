@@ -33,6 +33,12 @@ export class OrderedLinkedListHead<T> {
         return nn;
     }
 
+    forEach(callback: (item: T) => void) {
+        for (let nn = this.next; nn !== undefined; nn = nn.next) {
+            callback(nn.data);
+        }
+    }
+
     find(
         cmp: (t: T) => { match: boolean; shouldContinue: boolean }
     ): LinkedListItem<T> | undefined {

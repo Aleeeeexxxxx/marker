@@ -4,7 +4,7 @@ import {
     MarkerEvent,
     MarkerEventType,
     MarkerPlugin,
-} from "../markerMngr";
+} from "../mngr";
 
 export abstract class IPluginBase implements MarkerPlugin {
     abstract name(): string;

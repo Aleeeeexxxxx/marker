@@ -22,11 +22,27 @@
         "title": "Highlight Selection"
       },
       {
+        "command": "marker.editor.menu.mark.mark",
+        "title": "Mark Selection"
+      },
+      {
         "command": "marker.editor.menu.mark.remove",
         "title": "Remove"
       },
       {
+        "command": "marker.base.gotoLineInFile",
+        "title": "Goto"
+      },
+      {
         "command": "marker.activitybar.highlight.remove",
+        "title": "Remove",
+        "icon": {
+          "dark": "media/dark/archive.svg",
+          "light": "media/light/archive.svg"
+        }
+      },
+      {
+        "command": "marker.activitybar.marker.remove",
         "title": "Remove",
         "icon": {
           "dark": "media/dark/archive.svg",
@@ -67,12 +83,21 @@
           "command": "marker.activitybar.highlight.remove",
           "when": "view == activitybar_highlight_explorer && viewItem == highlight_item",
           "group": "inline"
+        },
+        {
+          "command": "marker.activitybar.marker.remove",
+          "when": "view == activitybar_marker_explorer && viewItem == marker_item",
+          "group": "inline"
         }
       ],
       "marker.editor.menu.mark": [
         {
           "group": "1_modification",
           "command": "marker.editor.menu.mark.highlight"
+        },
+        {
+          "group": "1_modification",
+          "command": "marker.editor.menu.mark.mark"
         },
         {
           "group": "1_modification",

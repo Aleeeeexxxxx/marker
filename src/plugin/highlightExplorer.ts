@@ -3,7 +3,7 @@ import {
     MarkerEvent,
     MarkerEventType,
     MarkerPlugin,
-} from "../markerMngr";
+} from "../mngr";
 import { logger } from "../logger";
 
 /**
