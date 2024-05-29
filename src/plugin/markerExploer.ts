@@ -7,12 +7,13 @@ import {
 } from "../mngr";
 import { logger } from "../logger";
 import { cmdGoToLineInFile } from "../commands";
+import { MarkerItem } from "../impl/marker";
 
 /**
  * HighlightExplorer
  */
 export class MarkerExplorer
-    implements MarkerPlugin, vscode.TreeDataProvider<MarkerItem>
+    implements MarkerPlugin, vscode.TreeDataProvider<MarkerExplorerItem>
 {
     private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
         new vscode.EventEmitter<undefined>();
@@ -26,32 +27,19 @@ export class MarkerExplorer
         this._onDidChangeTreeData.event;
 
     getTreeItem(
-        element: MarkerItem
+        element: MarkerExplorerItem
     ): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return element;
     }
 
     getChildren(
-        element?: MarkerItem | undefined
-    ): vscode.ProviderResult<MarkerItem[]> {
-        const array = new Array<MarkerItem>();
+        element?: MarkerExplorerItem | undefined
+    ): vscode.ProviderResult<MarkerExplorerItem[]> {
+        const array = new Array<MarkerExplorerItem>();
         this.mngr.marker.__markers.forEach((val, uri) => {
-            val.forEach((item) => {
-                if (!item.broken) {
-                    array.push(
-                        new MarkerItem(
-                            item.token +
-                                " \r\n " +
-                                getFileName(uri) +
-                                "#" +
-                                item.position.line,
-                            uri,
-                            item.position.line,
-                            item.token
-                        )
-                    );
-                }
-            });
+            val.forEach((item) =>
+                array.push(new MarkerExplorerItem(uri, item))
+            );
         });
         return array;
     }
@@ -89,31 +77,51 @@ export class MarkerExplorer
     }
 }
 
-class MarkerItem extends vscode.TreeItem {
+class MarkerExplorerItem extends vscode.TreeItem {
     // should equal to when clause of acitivity bar
     static contextValue = "marker_item";
 
     public uri: string;
     public token: string;
+    public line: number;
 
-    constructor(label: string, uri: string, line: number, token: string) {
-        super(label);
+    constructor(uri: string, item: MarkerItem) {
+        const token = item.token;
+        const line = item.position.line;
+        super(MarkerExplorerItem.getLabel(item.broken, token, uri, line));
 
-        this.contextValue = MarkerItem.contextValue;
-        this.tooltip = label;
-        this.id = `${token}##${uri}`;
+        this.contextValue = MarkerExplorerItem.contextValue;
         this.uri = uri;
         this.token = token;
-
+        this.line = line;
+        this.id = this.getID();
         this.command = {
             title: "open file",
             command: cmdGoToLineInFile,
-            arguments: [uri.substring("file://".length), line],
+            arguments: [getFileAbsolutePath(uri), line],
         };
+    }
+
+    static getLabel(
+        broken: boolean,
+        token: string,
+        uri: string,
+        line: number
+    ): string {
+        const label = `${token} ${getFileName(uri)}#${line}`;
+        return broken ? `[BROKER]${label}` : label;
+    }
+
+    getID(): string {
+        return `${this.token}%%${this.uri}`;
     }
 }
 
 function getFileName(uri: string): string {
     const items = uri.split("/");
     return items.at(items.length - 1) as string;
+}
+
+function getFileAbsolutePath(uri: string): string {
+    return uri.substring("file://".length);
 }

@@ -35,7 +35,7 @@ export class MarkerItem {
         }
         if (
             this.start > change.range.end ||
-            // insert something before token
+            // insert something just before token
             (this.start === change.range.end &&
                 change.range.end === change.range.start)
         ) {
