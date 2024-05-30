@@ -3,6 +3,7 @@
   "displayName": "Easy Marker",
   "description": "",
   "version": "0.0.4",
+  "icon": "doc/icon.png",
   "engines": {
     "vscode": "^1.88.0"
   },
