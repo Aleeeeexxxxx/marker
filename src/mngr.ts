@@ -6,9 +6,9 @@ import { HighlightImpl } from "./impl/highlight";
 import { MarkerImpl } from "./impl/marker";
 
 export enum MarkerEventType {
-    POST_ADD,
-    POST_REMOVE,
-    RESET,
+    POST_ADD_HIGHLIGHT,
+    POST_REMOVE_HIGHLIGHT,
+    RESET_HIGHLIGHT,
 
     POST_ADD_MARKER,
     POST_RESET_MARKER,
@@ -54,7 +54,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
 
     addHighlight(token: string) {
         if (this.highlight.add(token)) {
-            this.publish({ marker: token, event: MarkerEventType.POST_ADD });
+            this.publish({ marker: token, event: MarkerEventType.POST_ADD_HIGHLIGHT });
         }
     }
 
@@ -62,7 +62,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         if (this.highlight.remove(token)) {
             this.publish({
                 marker: token,
-                event: MarkerEventType.POST_REMOVE,
+                event: MarkerEventType.POST_REMOVE_HIGHLIGHT,
             });
         }
     }
@@ -76,7 +76,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
         }
 
         this.highlight.reset();
-        this.publish({ event: MarkerEventType.RESET });
+        this.publish({ event: MarkerEventType.RESET_HIGHLIGHT });
     }
 
     onTextDocumentChange(event: vscode.TextDocumentChangeEvent) {
@@ -100,7 +100,7 @@ export class MarkerManager extends PluginManager<IMarkerEventPayload> {
 
     _onTextDocumentChange() {
         if (this.highlight.reset()) {
-            this.publish({ event: MarkerEventType.RESET });
+            this.publish({ event: MarkerEventType.RESET_HIGHLIGHT });
         }
     }
 

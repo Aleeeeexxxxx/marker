@@ -83,33 +83,31 @@ class MarkerExplorerItem extends vscode.TreeItem {
 
     public uri: string;
     public token: string;
-    public line: number;
 
     constructor(uri: string, item: MarkerItem) {
-        const token = item.token;
-        const line = item.position.line;
-        super(MarkerExplorerItem.getLabel(item.broken, token, uri, line));
+        const label = item.broken
+            ? {
+                  label: `[BROKEN]${item.token}`,
+                  highlights: [[0, 8]] as [number, number][],
+              }
+            : item.token;
+        super(label);
 
-        this.contextValue = MarkerExplorerItem.contextValue;
         this.uri = uri;
-        this.token = token;
-        this.line = line;
+        this.token = item.token;
+
         this.id = this.getID();
+        this.contextValue = MarkerExplorerItem.contextValue;
         this.command = {
             title: "open file",
             command: cmdGoToLineInFile,
-            arguments: [getFileAbsolutePath(uri), line],
+            arguments: [getFileAbsolutePath(uri), item.position],
         };
+        this.description = MarkerExplorerItem.getLabel(uri, item);
     }
 
-    static getLabel(
-        broken: boolean,
-        token: string,
-        uri: string,
-        line: number
-    ): string {
-        const label = `${token} ${getFileName(uri)}#${line}`;
-        return broken ? `[BROKER]${label}` : label;
+    static getLabel(uri: string, item: MarkerItem): string {
+        return `${getFileAbsolutePath(uri)}#${item.position.line + 1}`;
     }
 
     getID(): string {

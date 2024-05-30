@@ -46,10 +46,10 @@ export class HighlightExplorer
         const payload = event.payload;
         const marker = payload.marker as string;
         switch (payload.event) {
-            case MarkerEventType.POST_ADD:
+            case MarkerEventType.POST_ADD_HIGHLIGHT:
                 this.highlights.set(marker, new HighlightItem(marker));
                 break;
-            case MarkerEventType.POST_REMOVE:
+            case MarkerEventType.POST_REMOVE_HIGHLIGHT:
                 this.highlights.delete(marker);
                 break;
             default:

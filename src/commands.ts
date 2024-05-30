@@ -65,21 +65,22 @@ export function registerVSCodeExtensionCommands(
                         args
                     )}`
                 );
-                const { token, uri } = args[0][0] as { token: string; uri: string };
+                const { token, uri } = args[0][0] as {
+                    token: string;
+                    uri: string;
+                };
                 mngr.removeMarker(token, uri);
             },
         },
         {
             command: cmdGoToLineInFile,
             handler: async (...args) => {
+                // passed by src/plugin/markerExploer.ts#98
                 const file = args[0][0] as string;
-                const line = args[0][1] as number;
-                // 打开文件
+                const position = args[0][1] as vscode.Position;
+
                 const document = await vscode.workspace.openTextDocument(file);
-                // 显示文件
                 const editor = await vscode.window.showTextDocument(document);
-                // 跳转到指定行
-                const position = new vscode.Position(line - 1, 0); // 行号从0开始，所以需要减1
                 editor.selection = new vscode.Selection(position, position);
                 editor.revealRange(new vscode.Range(position, position));
             },

@@ -2,12 +2,12 @@ import { logger } from "../logger";
 import {
     IMarkerEventPayload,
     MarkerEvent,
+    MarkerEventType,
     MarkerManager,
     MarkerPlugin,
 } from "../mngr";
 import * as vscode from "vscode";
 import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
-import { IPluginBase } from "./base";
 
 interface RenderOption {
     name: string;
@@ -75,12 +75,11 @@ interface DecorationItem {
 /**
  * Decorator,  highlight selected words
  */
-export class Decorator extends IPluginBase implements MarkerPlugin {
+export class Decorator implements MarkerPlugin {
     private avaiable: OrderedLinkedList<RenderOption> =
         new OrderedLinkedListHead<RenderOption>(() => true);
 
     constructor(private mngr: MarkerManager) {
-        super();
         defaultRenderOptions.forEach((op) => this.avaiable.insert(op));
     }
 
@@ -91,6 +90,30 @@ export class Decorator extends IPluginBase implements MarkerPlugin {
 
     name(): string {
         return "Decorator";
+    }
+
+    handleEvent(event: MarkerEvent): void {
+        if (this.preCheck(event)) {
+            try {
+                const payload = event.payload;
+                switch (payload.event) {
+                    case MarkerEventType.POST_ADD_HIGHLIGHT:
+                        this.postAdd(payload);
+                        break;
+                    case MarkerEventType.POST_REMOVE_HIGHLIGHT:
+                        this.postRemove(payload);
+                        break;
+                    case MarkerEventType.RESET_HIGHLIGHT:
+                        this.reset(payload);
+                        break;
+                    default:
+                        logger.warn(`unexpected event, type=${payload.event}`);
+                        return;
+                }
+            } catch (e) {
+                logger.error(e as Error);
+            }
+        }
     }
 
     preCheck(event: MarkerEvent): boolean {
