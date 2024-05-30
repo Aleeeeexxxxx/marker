@@ -12,4 +12,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Support highlight seleceted words
 
 ### 0.0.4
-- Fix: Output logs in vscode channel
+- Support marking important items
+- Printing logs in output channel "Easy Marker"
+- Disable highlighting empty selection
+- Moving "Dark Gray" to the end choice.
