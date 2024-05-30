@@ -1,19 +1,18 @@
 import * as vscode from "vscode";
 import {
-    IMarkerEventPayload,
     MarkerEvent,
     MarkerEventType,
     MarkerPlugin,
-} from "../markerMngr";
+} from "../mngr";
 import { logger } from "../logger";
 
 /**
- * ActivityBar
+ * HighlightExplorer
  */
-export class ActivityBar
+export class HighlightExplorer
     implements MarkerPlugin, vscode.TreeDataProvider<vscode.TreeItem>
 {
-    private highlights: Set<string> = new Set<string>();
+    private highlights: Map<string, HighlightItem> = new Map();
     private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
         new vscode.EventEmitter<undefined>();
 
@@ -32,9 +31,7 @@ export class ActivityBar
     getChildren(
         element?: vscode.TreeItem | undefined
     ): vscode.ProviderResult<vscode.TreeItem[]> {
-        const array = new Array<vscode.TreeItem>();
-        this.highlights.forEach((val) => array.push(new vscode.TreeItem(val)));
-        return array;
+        return Array.from(this.highlights.values());
     }
 
     /**
@@ -47,15 +44,18 @@ export class ActivityBar
 
     handleEvent(event: MarkerEvent): void {
         const payload = event.payload;
+        const marker = payload.marker as string;
         switch (payload.event) {
-            case MarkerEventType.POST_ADD:
-                this.highlights.add(payload.marker as string);
+            case MarkerEventType.POST_ADD_HIGHLIGHT:
+                this.highlights.set(marker, new HighlightItem(marker));
                 break;
-            case MarkerEventType.POST_REMOVE:
-                this.highlights.delete(payload.marker as string);
+            case MarkerEventType.POST_REMOVE_HIGHLIGHT:
+                this.highlights.delete(marker);
                 break;
             default:
-                logger.debug(`activity bar ignore event, type=${payload.event}`);
+                logger.debug(
+                    `activity bar ignore event, type=${payload.event}`
+                );
                 return;
         }
 
@@ -64,5 +64,17 @@ export class ActivityBar
 
     refresh() {
         this._onDidChangeTreeData.fire(undefined);
+    }
+}
+
+class HighlightItem extends vscode.TreeItem {
+    // should equal to when clause of acitivity bar
+    static contextValue = "highlight_item";
+
+    constructor(name: string) {
+        super(name);
+
+        this.contextValue = HighlightItem.contextValue;
+        this.tooltip = name;
     }
 }
