@@ -35,7 +35,9 @@ class Logger {
                 break;
             default:
                 this.error(`unknow lvl, lvl=${lvl}`);
+                return;
         }
+        this.debug(`change log level to ${lvl}`);
     }
 
     debug(msg: string) {

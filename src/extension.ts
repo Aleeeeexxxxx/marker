@@ -24,7 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.workspace.onDidChangeTextDocument((event) =>
             mngr.onTextDocumentChange(event)
-        )
+        ),
+        vscode.workspace.onDidChangeConfiguration(onConfigChange)
     );
 
     vscode.window.registerTreeDataProvider(
@@ -52,6 +53,12 @@ function createOutputChannel(): void {
     logger.setOutput(
         extensionOutputChannel.appendLine.bind(extensionOutputChannel)
     );
+}
+
+function onConfigChange(event: vscode.ConfigurationChangeEvent): void {
+    if (event.affectsConfiguration("marker.log.level")) {
+        configExtension();
+    }
 }
 
 // This method is called when your extension is deactivated
