@@ -1,5 +1,3 @@
-import * as vscode from "vscode";
-
 export enum LogLevel {
     ERROR,
     WARNING,
@@ -20,8 +18,26 @@ class Logger {
         this.output = output;
     }
 
-    setLogLevel(lvl: LogLevel) {
+    __setLogLevel(lvl: LogLevel) {
         this.logLevel = lvl;
+    }
+
+    setLogLevel(lvl: string) {
+        switch (lvl) {
+            case "info":
+                this.__setLogLevel(LogLevel.INFO);
+                break;
+            case "debug":
+                this.__setLogLevel(LogLevel.DEBUG);
+                break;
+            case "error":
+                this.__setLogLevel(LogLevel.ERROR);
+                break;
+            default:
+                this.error(`unknow lvl, lvl=${lvl}`);
+                return;
+        }
+        this.debug(`change log level to ${lvl}`);
     }
 
     debug(msg: string) {

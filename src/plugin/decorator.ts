@@ -87,15 +87,15 @@ export class Decorator extends PluginBase implements MarkerPlugin {
 
         this.__registerEventHandler(
             MarkerEventType.POST_ADD_HIGHLIGHT,
-            this.postAdd
+            this.postAdd.bind(this)
         );
         this.__registerEventHandler(
             MarkerEventType.POST_REMOVE_HIGHLIGHT,
-            this.postRemove
+            this.postRemove.bind(this)
         );
         this.__registerEventHandler(
             MarkerEventType.RESET_HIGHLIGHT,
-            this.reset
+            this.reset.bind(this)
         );
     }
 
@@ -112,10 +112,10 @@ export class Decorator extends PluginBase implements MarkerPlugin {
         _type: MarkerEventType,
         handler: (payload: IMarkerEventPayload) => void
     ) {
-        const _handler = (event: MarkerEvent) => {
-            this.preCheck(event) ? handler(event.payload) : null;
-        };
-        this.registerTypeHandler(_type, _handler.bind(this));
+        const precheck = this.preCheck.bind(this);
+        this.registerTypeHandler(_type, (event) => {
+            precheck(event) ? handler(event.payload) : null;
+        });
     }
 
     preCheck(event: MarkerEvent): boolean {

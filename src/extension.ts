@@ -7,14 +7,8 @@ import { MarkerManager } from "./mngr";
 import { MarkerExplorer } from "./plugin/markerExploer";
 
 export function activate(context: vscode.ExtensionContext) {
-    const extensionOutputChannel =
-        vscode.window.createOutputChannel("Easy Marker");
-    extensionOutputChannel.show();
-
-    logger.setLogLevel(LogLevel.DEBUG);
-    logger.setOutput(
-        extensionOutputChannel.appendLine.bind(extensionOutputChannel)
-    );
+    configExtension();
+    createOutputChannel();
 
     const mngr = new MarkerManager();
     const activityBarProvider = new HighlightExplorer();
@@ -23,14 +17,15 @@ export function activate(context: vscode.ExtensionContext) {
     mngr.register(new Decorator(mngr), activityBarProvider, markerExplorer);
 
     registerVSCodeExtensionCommands(context, mngr);
-    
+
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor((editor) =>
             mngr.onActiveEditorChange(editor)
         ),
         vscode.workspace.onDidChangeTextDocument((event) =>
             mngr.onTextDocumentChange(event)
-        )
+        ),
+        vscode.workspace.onDidChangeConfiguration(onConfigChange)
     );
 
     vscode.window.registerTreeDataProvider(
@@ -43,6 +38,27 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     logger.info("extension activited!");
+}
+
+function configExtension(): void {
+    const config = vscode.workspace.getConfiguration("marker");
+    logger.setLogLevel(config.get<{ level: string }>("log")?.level as string);
+}
+
+function createOutputChannel(): void {
+    const extensionOutputChannel =
+        vscode.window.createOutputChannel("Easy Marker");
+    extensionOutputChannel.show();
+
+    logger.setOutput(
+        extensionOutputChannel.appendLine.bind(extensionOutputChannel)
+    );
+}
+
+function onConfigChange(event: vscode.ConfigurationChangeEvent): void {
+    if (event.affectsConfiguration("marker.log.level")) {
+        configExtension();
+    }
 }
 
 // This method is called when your extension is deactivated
