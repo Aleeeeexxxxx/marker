@@ -8,6 +8,7 @@ import {
 } from "../mngr";
 import * as vscode from "vscode";
 import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
+import { PluginBase } from "./base";
 
 interface RenderOption {
     name: string;
@@ -75,12 +76,27 @@ interface DecorationItem {
 /**
  * Decorator,  highlight selected words
  */
-export class Decorator implements MarkerPlugin {
+export class Decorator extends PluginBase implements MarkerPlugin {
     private avaiable: OrderedLinkedList<RenderOption> =
         new OrderedLinkedListHead<RenderOption>(() => true);
 
     constructor(private mngr: MarkerManager) {
+        super();
+
         defaultRenderOptions.forEach((op) => this.avaiable.insert(op));
+
+        this.__registerEventHandler(
+            MarkerEventType.POST_ADD_HIGHLIGHT,
+            this.postAdd
+        );
+        this.__registerEventHandler(
+            MarkerEventType.POST_REMOVE_HIGHLIGHT,
+            this.postRemove
+        );
+        this.__registerEventHandler(
+            MarkerEventType.RESET_HIGHLIGHT,
+            this.reset
+        );
     }
 
     private decoratedItems: Map<string, DecorationItem> = new Map<
@@ -92,28 +108,14 @@ export class Decorator implements MarkerPlugin {
         return "Decorator";
     }
 
-    handleEvent(event: MarkerEvent): void {
-        if (this.preCheck(event)) {
-            try {
-                const payload = event.payload;
-                switch (payload.event) {
-                    case MarkerEventType.POST_ADD_HIGHLIGHT:
-                        this.postAdd(payload);
-                        break;
-                    case MarkerEventType.POST_REMOVE_HIGHLIGHT:
-                        this.postRemove(payload);
-                        break;
-                    case MarkerEventType.RESET_HIGHLIGHT:
-                        this.reset(payload);
-                        break;
-                    default:
-                        logger.warn(`unexpected event, type=${payload.event}`);
-                        return;
-                }
-            } catch (e) {
-                logger.error(e as Error);
-            }
-        }
+    private __registerEventHandler(
+        _type: MarkerEventType,
+        handler: (payload: IMarkerEventPayload) => void
+    ) {
+        const _handler = (event: MarkerEvent) => {
+            this.preCheck(event) ? handler(event.payload) : null;
+        };
+        this.registerTypeHandler(_type, _handler.bind(this));
     }
 
     preCheck(event: MarkerEvent): boolean {

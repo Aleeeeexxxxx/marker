@@ -60,7 +60,15 @@ export class MarkerItem {
     }
 }
 
-function debugPrintLastNCharacter(s: string, msg?: string, n: number = 3) {
+function debugPrintLastNCharacter(
+    doc: vscode.TextDocument,
+    pos: vscode.Position,
+    msg?: string,
+    n: number = 3
+) {
+    const s = doc.getText(
+        new vscode.Range(new vscode.Position(pos.line, 0), pos)
+    );
     logger.debug(
         `[ ${msg}] last ${n} charater of: ${s.substring(s.length - 3)}`
     );
@@ -70,18 +78,16 @@ export function getDocumentChange(
     document: vscode.TextDocument,
     change: vscode.TextDocumentContentChangeEvent
 ): IDocumentChange {
-    const textBeforeChangeStart = document.getText(
-        new vscode.Range(new vscode.Position(0, 0), change.range.start)
+    debugPrintLastNCharacter(
+        document,
+        change.range.start,
+        "textBeforeChangeStart"
     );
-    debugPrintLastNCharacter(textBeforeChangeStart, "textBeforeChangeStart");
 
-    const textBeforeChangeEnd = document.getText(
-        new vscode.Range(new vscode.Position(0, 0), change.range.end)
-    );
-    debugPrintLastNCharacter(textBeforeChangeEnd, "textBeforeChangeEnd");
+    debugPrintLastNCharacter(document, change.range.end, "textBeforeChangeEnd");
 
-    const start = textBeforeChangeStart.length;
-    const end = textBeforeChangeStart.length;
+    const start = document.offsetAt(change.range.start);
+    const end = document.offsetAt(change.range.end);
     const changed = change.text.length - (end - start);
     logger.debug(`changed, start=${start},end=${end},changed=${changed}`);
 
@@ -116,10 +122,15 @@ export class MarkerImpl {
     add(editor: vscode.TextEditor) {
         const { document, selection } = editor;
         const token = document.getText(selection);
-        const before = document.getText(
-            new vscode.Range(new vscode.Position(0, 0), selection.anchor)
+        if (token.length <= 0) {
+            return;
+        }
+
+        debugPrintLastNCharacter(
+            document,
+            selection.anchor,
+            "textBeforeSelection"
         );
-        debugPrintLastNCharacter(before, "textBeforeSelection");
 
         this.__addMarkerItem(
             MarkerImpl.key(document),
