@@ -1,30 +1,33 @@
 import * as vscode from "vscode";
 import {
-    MarkerEvent,
     MarkerEventType,
     MarkerManager,
     MarkerPlugin,
 } from "../mngr";
-import { logger } from "../logger";
 import { cmdGoToLineInFile } from "../commands";
 import { MarkerItem } from "../impl/marker";
+import { ExplorerBase } from "./base";
 
 /**
  * HighlightExplorer
  */
 export class MarkerExplorer
+    extends ExplorerBase
     implements MarkerPlugin, vscode.TreeDataProvider<MarkerExplorerItem>
 {
-    private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
-        new vscode.EventEmitter<undefined>();
+    constructor(private mngr: MarkerManager) {
+        super();
 
-    constructor(private mngr: MarkerManager) {}
+        this.registerEmptyHandler(
+            MarkerEventType.POST_ADD_MARKER,
+            MarkerEventType.POST_DELETE_MARKER,
+            MarkerEventType.POST_RESET_MARKER
+        );
+    }
 
     /**
      * Implement vscode.TreeDataProvider
      */
-    readonly onDidChangeTreeData: vscode.Event<undefined> =
-        this._onDidChangeTreeData.event;
 
     getTreeItem(
         element: MarkerExplorerItem
@@ -52,28 +55,8 @@ export class MarkerExplorer
         return "Marker Explorer";
     }
 
-    handleEvent(event: MarkerEvent): void {
-        const payload = event.payload;
-        const marker = payload.marker as string;
-        switch (payload.event) {
-            case MarkerEventType.POST_ADD_MARKER:
-                break;
-            case MarkerEventType.POST_RESET_MARKER:
-                break;
-            case MarkerEventType.POST_DELETE_MARKER:
-                break;
-            default:
-                logger.debug(
-                    `marker explorer ignore event, type=${payload.event}`
-                );
-                return;
-        }
-
-        this.refresh();
-    }
-
-    refresh() {
-        this._onDidChangeTreeData.fire(undefined);
+    private registerEmptyHandler(..._types: MarkerEventType[]) {
+        _types.forEach((_type) => this.registerTypeHandler(_type, () => {}));
     }
 }
 
@@ -107,7 +90,7 @@ class MarkerExplorerItem extends vscode.TreeItem {
     }
 
     static getLabel(uri: string, item: MarkerItem): string {
-        return `${getFileAbsolutePath(uri)}#${item.position.line + 1}`;
+        return `${getFileName(uri)}#${item.position.line + 1}`;
     }
 
     getID(): string {

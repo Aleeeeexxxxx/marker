@@ -1,26 +1,32 @@
 import * as vscode from "vscode";
-import {
-    MarkerEvent,
-    MarkerEventType,
-    MarkerPlugin,
-} from "../mngr";
-import { logger } from "../logger";
+import { MarkerEvent, MarkerEventType, MarkerPlugin } from "../mngr";
+import { ExplorerBase } from "./base";
 
 /**
  * HighlightExplorer
  */
 export class HighlightExplorer
+    extends ExplorerBase
     implements MarkerPlugin, vscode.TreeDataProvider<vscode.TreeItem>
 {
     private highlights: Map<string, HighlightItem> = new Map();
-    private _onDidChangeTreeData: vscode.EventEmitter<undefined> =
-        new vscode.EventEmitter<undefined>();
 
     /**
      * Implement vscode.TreeDataProvider
      */
-    readonly onDidChangeTreeData: vscode.Event<undefined> =
-        this._onDidChangeTreeData.event;
+
+    constructor() {
+        super();
+
+        this.registerTypeHandler(
+            MarkerEventType.POST_ADD_HIGHLIGHT,
+            this.onPostAddHighlight.bind(this)
+        );
+        this.registerTypeHandler(
+            MarkerEventType.POST_REMOVE_HIGHLIGHT,
+            this.onPostRemoveHighlight.bind(this)
+        );
+    }
 
     getTreeItem(
         element: vscode.TreeItem
@@ -42,28 +48,14 @@ export class HighlightExplorer
         return "Activity Bar";
     }
 
-    handleEvent(event: MarkerEvent): void {
-        const payload = event.payload;
-        const marker = payload.marker as string;
-        switch (payload.event) {
-            case MarkerEventType.POST_ADD_HIGHLIGHT:
-                this.highlights.set(marker, new HighlightItem(marker));
-                break;
-            case MarkerEventType.POST_REMOVE_HIGHLIGHT:
-                this.highlights.delete(marker);
-                break;
-            default:
-                logger.debug(
-                    `activity bar ignore event, type=${payload.event}`
-                );
-                return;
-        }
-
-        this.refresh();
+    onPostAddHighlight(event: MarkerEvent) {
+        const marker = event.payload.marker as string;
+        this.highlights.set(marker, new HighlightItem(marker));
     }
 
-    refresh() {
-        this._onDidChangeTreeData.fire(undefined);
+    onPostRemoveHighlight(event: MarkerEvent) {
+        const marker = event.payload.marker as string;
+        this.highlights.delete(marker);
     }
 }
 
