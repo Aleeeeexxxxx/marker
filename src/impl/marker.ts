@@ -134,7 +134,11 @@ export class MarkerImpl {
 
         this.__addMarkerItem(
             MarkerImpl.key(document),
-            new MarkerItem(token, before.length, selection.anchor)
+            new MarkerItem(
+                token,
+                document.offsetAt(selection.active),
+                selection.anchor
+            )
         );
     }
 

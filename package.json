@@ -17,6 +17,18 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Easy Marker Configuration",
+      "properties": {
+        "marker.log.level": {
+          "type": "string",
+          "enum": ["error", "info", "debug"],
+          "default": "info",
+          "description": "log level of the extension."
+        }
+      }
+    },
     "commands": [
       {
         "command": "marker.editor.menu.mark.highlight",
