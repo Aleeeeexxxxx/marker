@@ -115,35 +115,43 @@ export class DelayRunner {
     }
 }
 
-
 export class WaitGroup {
     private counter: number;
     private promise: Promise<any>;
     private __resolve: (args: any) => void;
 
     constructor() {
-      this.counter = 0;
-      this.__resolve = () => void {};
-      this.promise = new Promise((resolve) => {
-        this.__resolve = resolve;
-      });
+        this.counter = 0;
+        this.__resolve = () => void {};
+        this.promise = new Promise((resolve) => {
+            this.__resolve = resolve;
+        });
     }
-  
+
     add(count = 1) {
-      this.counter += count;
+        this.counter += count;
     }
-  
+
     done() {
-      this.counter -= 1;
-      if (this.counter === 0) {
-        this.__resolve(1);
-      }
+        this.counter -= 1;
+        if (this.counter === 0) {
+            this.__resolve(1);
+        }
     }
-  
+
     async wait() {
-      if (this.counter === 0) {
-        return Promise.resolve();
-      }
-      return this.promise;
+        if (this.counter === 0) {
+            return Promise.resolve();
+        }
+        return this.promise;
     }
-  }
+}
+
+export namespace DEBUG {
+    export function assert(cond: boolean, msg?: string) {
+        if (!cond) {
+            msg = msg ? msg : "";
+            throw new Error(`${msg}`);
+        }
+    }
+}
