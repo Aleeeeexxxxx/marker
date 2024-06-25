@@ -16,6 +16,24 @@
 				"${workspaceFolder}/dist/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
-		}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Mocha Tests(Current File)",
+			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"args": [
+			  "-r",
+			  "ts-node/register",
+			  "${file}"
+			],
+			"internalConsoleOptions": "openOnSessionStart",
+			"skipFiles": [
+			  "<node_internals>/**"
+			],
+			"outFiles": [
+			  "${workspaceFolder}/dist/**/*.js"
+			]
+		  }
 	]
 }

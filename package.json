@@ -23,7 +23,11 @@
       "properties": {
         "marker.log.level": {
           "type": "string",
-          "enum": ["error", "info", "debug"],
+          "enum": [
+            "error",
+            "info",
+            "debug"
+          ],
           "default": "info",
           "description": "log level of the extension."
         }
@@ -134,19 +138,24 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "mocha": "mocha -r ts-node/register src/**/*.unit.ts"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.6",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.7",
     "@types/node": "18.x",
     "@types/vscode": "^1.88.0",
     "@typescript-eslint/eslint-plugin": "^7.7.1",
     "@typescript-eslint/parser": "^7.7.1",
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.9",
+    "chai": "^4.1.1",
     "eslint": "^8.57.0",
+    "mocha": "^10.5.0",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
   }
