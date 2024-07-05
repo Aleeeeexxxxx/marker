@@ -143,15 +143,38 @@ export class WaitGroup {
         if (this.counter === 0) {
             return Promise.resolve();
         }
-        return this.promise;
+        return await this.promise;
     }
 }
 
 // https://blog.csdn.net/qq_43869106/article/details/128753527
 export namespace KMP {
     export function getNext(pattern: string): number[] {
-        const next = [];
-        next.push(1);
+        const next: number[] = [];
+
+        if (pattern.length > 0) {
+            next.push(0);
+
+            for (let i = 1; i < pattern.length; i++) {
+                const current = pattern[i];
+                let j = next[i - 1];
+
+                while (true) {
+                    const lastToMatch = pattern[j];
+
+                    if (lastToMatch === current) {
+                        next.push(j + 1);
+                        break;
+                    }
+                    if (j === 0) {
+                        next.push(0);
+                        break;
+                    }
+                    j = next[j - 1];
+                }
+            }
+        }
+
         return next;
     }
 
