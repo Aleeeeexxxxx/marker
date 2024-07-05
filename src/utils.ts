@@ -217,3 +217,9 @@ export namespace KMP {
         return matched;
     }
 }
+
+export namespace VscodeUtils {
+    export function isFileUri(uri: string): boolean {
+        return uri.startsWith("file://");
+    }
+}
