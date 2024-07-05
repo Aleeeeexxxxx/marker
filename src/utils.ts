@@ -178,7 +178,42 @@ export namespace KMP {
         return next;
     }
 
-    export function searchAll(str: string, next: number[]): number[] {
-        return [];
+    export function searchAll(
+        str: string,
+        pattern: string,
+        next: number[]
+    ): number[] {
+        if (str.length === 0) {
+            return [];
+        }
+
+        const matched: number[] = [];
+        let j = 0;
+
+        for (let i = 0; i < str.length; ) {
+            const strStart = i;
+
+            while (
+                j < pattern.length &&
+                i < str.length &&
+                str[i] === pattern[j]
+            ) {
+                i++ && j++;
+            }
+
+            if (j === pattern.length) {
+                matched.push(strStart);
+                j = 0;
+            } else if (i === str.length) {
+                break;
+            } else {
+                if (j > 0) {
+                    j = next[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        return matched;
     }
 }
