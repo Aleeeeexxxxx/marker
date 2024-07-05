@@ -11,6 +11,8 @@ jobs:
       with:
         node-version: 18.20.x
         cache: 'npm'
+    - name: install dependency
+      run: npm i
     - name: lint
       run: npm run lint-check
   webpack:
