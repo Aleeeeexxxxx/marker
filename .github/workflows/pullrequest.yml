@@ -2,7 +2,7 @@ name: 'push-val'
 on: push
 
 jobs:
-  integration-test:
+  unit-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
