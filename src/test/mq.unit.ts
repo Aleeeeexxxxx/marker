@@ -29,6 +29,8 @@ describe("InMemoryMessageQueue", async () => {
         }
 
         wg.wait();
+        mq.cleanup(topic);
+
         expect(mq.static(topic)).to.be.equal(0);
     });
 
@@ -62,10 +64,12 @@ describe("InMemoryMessageQueue", async () => {
         });
 
         for (let i = 0; i < total; i++) {
-            mq.publish(topic, 1);
+            mq.publish(topic, i);
         }
 
         wg.wait();
+        mq.cleanup(topic);
+
         expect(mq.static(topic)).to.be.equal(0);
     });
 });
