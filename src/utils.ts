@@ -115,35 +115,105 @@ export class DelayRunner {
     }
 }
 
-
 export class WaitGroup {
     private counter: number;
     private promise: Promise<any>;
     private __resolve: (args: any) => void;
 
     constructor() {
-      this.counter = 0;
-      this.__resolve = () => void {};
-      this.promise = new Promise((resolve) => {
-        this.__resolve = resolve;
-      });
+        this.counter = 0;
+        this.__resolve = () => void {};
+        this.promise = new Promise((resolve) => {
+            this.__resolve = resolve;
+        });
     }
-  
+
     add(count = 1) {
-      this.counter += count;
+        this.counter += count;
     }
-  
+
     done() {
-      this.counter -= 1;
-      if (this.counter === 0) {
-        this.__resolve(1);
-      }
+        this.counter -= 1;
+        if (this.counter === 0) {
+            this.__resolve(1);
+        }
     }
-  
+
     async wait() {
-      if (this.counter === 0) {
-        return Promise.resolve();
-      }
-      return this.promise;
+        if (this.counter === 0) {
+            return Promise.resolve();
+        }
+        return await this.promise;
     }
-  }
+}
+
+// https://blog.csdn.net/qq_43869106/article/details/128753527
+export namespace KMP {
+    export function getNext(pattern: string): number[] {
+        const next: number[] = [];
+
+        if (pattern.length > 0) {
+            next.push(0);
+
+            for (let i = 1; i < pattern.length; i++) {
+                const current = pattern[i];
+                let j = next[i - 1];
+
+                while (true) {
+                    const lastToMatch = pattern[j];
+
+                    if (lastToMatch === current) {
+                        next.push(j + 1);
+                        break;
+                    }
+                    if (j === 0) {
+                        next.push(0);
+                        break;
+                    }
+                    j = next[j - 1];
+                }
+            }
+        }
+
+        return next;
+    }
+
+    export function searchAll(
+        str: string,
+        pattern: string,
+        next: number[]
+    ): number[] {
+        if (str.length === 0) {
+            return [];
+        }
+
+        const matched: number[] = [];
+        let j = 0;
+
+        for (let i = 0; i < str.length; ) {
+            const strStart = i;
+
+            while (
+                j < pattern.length &&
+                i < str.length &&
+                str[i] === pattern[j]
+            ) {
+                i++ && j++;
+            }
+
+            if (j === pattern.length) {
+                matched.push(strStart);
+                j = 0;
+            } else if (i === str.length) {
+                break;
+            } else {
+                if (j > 0) {
+                    j = next[j - 1];
+                } else {
+                    i++;
+                }
+            }
+        }
+        return matched;
+    }
+}
