@@ -100,7 +100,7 @@ class Subscriber {
         this.lastCommitMessageIndex = index;
 
         if (this.inProcessingMessageIndex !== index) {
-            throw new Error("");
+            throw new Error(`commit wrong index: expect=${this.inProcessingMessageIndex}, actual=${index}`);
         }
 
         this.inProcessingMessageIndex = INDEX_START_FROM;
@@ -198,7 +198,7 @@ export class Topic {
         return this.lastMessageIndex;
     }
 
-    private cleanupOutdatedMessages() {
+    cleanupOutdatedMessages() {
         let minCommitted = this.lastMessageIndex;
 
         this.subscribers.forEach((sub) => {
@@ -215,7 +215,7 @@ export class Topic {
             }
         }
 
-        this.messages = this.messages.slice(i);
+        this.messages = this.messages.slice(i + 1);
     }
 
     private notifySubscribers() {
@@ -226,9 +226,7 @@ export class Topic {
         this.subscribers.forEach((sub) => sub.close());
     }
 
-    removeSubscriber(sub: Subscriber) {
-       
-    }
+    removeSubscriber(sub: Subscriber) {}
 
     undeliveryMessage(): number {
         return this.messages.length;
@@ -262,6 +260,13 @@ export class InMemoryMessageQueue {
             return __topic.undeliveryMessage();
         }
         return -1;
+    }
+
+    cleanup(topic: string) {
+        let __topic = this.__topics.get(topic);
+        if (__topic) {
+            __topic.cleanupOutdatedMessages();
+        }
     }
 
     private getOrCreate(topic: string): Topic {
