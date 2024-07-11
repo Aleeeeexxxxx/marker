@@ -31,7 +31,7 @@ describe("InMemoryMessageQueue", async () => {
         wg.wait();
         mq.cleanup(topic);
 
-        // expect(mq.static(topic)).to.be.equal(0);
+        expect(mq.static(topic)).to.be.equal(0);
     });
 
     it("pub, 2 sub", async () => {
@@ -70,6 +70,6 @@ describe("InMemoryMessageQueue", async () => {
         wg.wait();
         mq.cleanup(topic);
 
-        // expect(mq.static(topic)).to.be.equal(0);
+        expect(mq.static(topic)).to.be.equal(0);
     });
 });

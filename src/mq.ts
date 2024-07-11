@@ -211,11 +211,16 @@ export class Topic {
         });
 
         for (let i = 0; i < this.messages.length; i++) {
-            if (this.messages[i].index >= minCommitted) {
+            if (this.messages[i].index === minCommitted) {
                 this.messages = this.messages.slice(i);
-                break;
+                return;
+            } else if (this.messages[i].index > minCommitted) {
+                this.messages = this.messages.slice(i + 1);
+                return;
             }
         }
+
+        this.messages = [];
     }
 
     private notifySubscribers() {
