@@ -1,28 +1,43 @@
 import * as vscode from "vscode";
-import {
-    MarkerEventType,
-    MarkerManager,
-    MarkerPlugin,
-} from "../mngr";
 import { cmdGoToLineInFile } from "../commands";
-import { MarkerItem } from "../impl/marker";
+import {
+    IMarkerChangeMessage,
+    MarkerItem,
+    MarkerMngr,
+    topicMarkerChange,
+} from "../marker";
 import { ExplorerBase } from "./base";
+import { InMemoryMessageQueue } from "../mq";
 
 /**
  * HighlightExplorer
  */
 export class MarkerExplorer
     extends ExplorerBase
-    implements MarkerPlugin, vscode.TreeDataProvider<MarkerExplorerItem>
+    implements vscode.TreeDataProvider<MarkerExplorerItem>
 {
-    constructor(private mngr: MarkerManager) {
-        super();
+    private mq: InMemoryMessageQueue;
+    private markers: MarkerExplorerItem[];
+    private mngr: MarkerMngr;
 
-        this.registerEmptyHandler(
-            MarkerEventType.POST_ADD_MARKER,
-            MarkerEventType.POST_DELETE_MARKER,
-            MarkerEventType.POST_RESET_MARKER
-        );
+    constructor(mq: InMemoryMessageQueue, marker: MarkerMngr) {
+        super();
+        this.markers = [];
+        this.mngr = marker;
+
+        this.mq = mq;
+        this.mq.subscribe(topicMarkerChange, async (msg) => {
+            const array = new Array<MarkerExplorerItem>();
+            this.mngr.__markers.forEach((val, uri) => {
+                val.forEach((item) =>
+                    array.push(new MarkerExplorerItem(uri, item))
+                );
+            });
+            this.markers = array;
+            
+            this.fire();
+            msg.commit();
+        });
     }
 
     /**
@@ -38,25 +53,7 @@ export class MarkerExplorer
     getChildren(
         element?: MarkerExplorerItem | undefined
     ): vscode.ProviderResult<MarkerExplorerItem[]> {
-        const array = new Array<MarkerExplorerItem>();
-        this.mngr.marker.__markers.forEach((val, uri) => {
-            val.forEach((item) =>
-                array.push(new MarkerExplorerItem(uri, item))
-            );
-        });
-        return array;
-    }
-
-    /**
-     * Implement MarkerPlguin
-     */
-
-    name(): string {
-        return "Marker Explorer";
-    }
-
-    private registerEmptyHandler(..._types: MarkerEventType[]) {
-        _types.forEach((_type) => this.registerTypeHandler(_type, () => {}));
+        return this.markers;
     }
 }
 

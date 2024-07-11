@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
-import { logger } from "../logger";
-import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
+import { logger } from "./logger";
+import { OrderedLinkedList, OrderedLinkedListHead } from "./utils";
+import { InMemoryMessageQueue } from "./mq";
+import { topicChangeTextDocument } from "./dispatcher";
+
+export interface IMarkerChangeMessage {}
+
+export const topicMarkerChange = "marker.marker.change";
 
 interface IDocumentChange {
     document: vscode.TextDocument;
@@ -94,9 +100,26 @@ export function getDocumentChange(
     return { range: { start, end, changed }, document };
 }
 
-export class MarkerImpl {
+export class MarkerMngr {
     // file uri -> markers
-    public __markers: Map<string, OrderedLinkedList<MarkerItem>> = new Map();
+    public __markers: Map<string, OrderedLinkedList<MarkerItem>>;
+
+    private mq: InMemoryMessageQueue;
+
+    constructor(mq: InMemoryMessageQueue) {
+        this.__markers = new Map();
+        this.mq = mq;
+        this.mq.subscribe(topicChangeTextDocument, async (msg) => {
+            const { event } = msg.payload as {
+                event: vscode.TextDocumentChangeEvent;
+            };
+            const somethingChanged = this.onTextDocumentChange(event);
+            if (somethingChanged) {
+                this.mq.publish(topicMarkerChange, {});
+            }
+            msg.commit();
+        });
+    }
 
     static key(document: vscode.TextDocument): string {
         return document.uri.toString();
@@ -104,7 +127,7 @@ export class MarkerImpl {
 
     onTextDocumentChange(event: vscode.TextDocumentChangeEvent): boolean {
         const { document } = event;
-        const markers = this.__markers.get(MarkerImpl.key(document));
+        const markers = this.__markers.get(MarkerMngr.key(document));
         let changed = false;
 
         markers &&
@@ -132,14 +155,15 @@ export class MarkerImpl {
             "textBeforeSelection"
         );
 
-        this.__addMarkerItem(
-            MarkerImpl.key(document),
+        this.__add(
+            MarkerMngr.key(document),
             new MarkerItem(
                 token,
-                document.offsetAt(selection.active),
+                document.offsetAt(selection.anchor),
                 selection.anchor
             )
         );
+        this.mq.publish(topicMarkerChange, {});
     }
 
     remove(token: string, uri: string) {
@@ -154,10 +178,11 @@ export class MarkerImpl {
             });
 
             nn && markers.remove(nn);
+            this.mq.publish(topicMarkerChange, {});
         }
     }
 
-    private __addMarkerItem(key: string, item: MarkerItem) {
+    private __add(key: string, item: MarkerItem) {
         let markers = this.__markers.get(key);
         if (!markers) {
             markers = new OrderedLinkedListHead<MarkerItem>(

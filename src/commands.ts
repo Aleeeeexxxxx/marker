@@ -1,6 +1,7 @@
+import { HighlightMngr } from "./highlight";
 import { logger } from "./logger";
-import { MarkerManager } from "./mngr";
 import * as vscode from "vscode";
+import { MarkerMngr } from "./marker";
 
 export const cmdGoToLineInFile = "marker.base.gotoLineInFile";
 
@@ -11,7 +12,8 @@ interface IVScodeCommand {
 
 export function registerVSCodeExtensionCommands(
     context: vscode.ExtensionContext,
-    mngr: MarkerManager
+    mmngr: MarkerMngr,
+    hmngr: HighlightMngr
 ) {
     const commands: IVScodeCommand[] = [
         {
@@ -28,12 +30,17 @@ export function registerVSCodeExtensionCommands(
                     );
                     return;
                 }
-                mngr.addHighlight(selected);
+                hmngr.add(selected);
             },
         },
         {
             command: "marker.editor.menu.mark.mark",
-            handler: mngr.addMarker.bind(mngr),
+            handler: () => {
+                if (!vscode.window.activeTextEditor) {
+                    return;
+                }
+                mmngr.add(vscode.window.activeTextEditor);
+            },
         },
         {
             command: "marker.editor.menu.mark.remove",
@@ -42,7 +49,7 @@ export function registerVSCodeExtensionCommands(
                     return;
                 }
                 const { document, selection } = vscode.window.activeTextEditor;
-                mngr.removeHighlight(document.getText(selection));
+                hmngr.remove(document.getText(selection));
             },
         },
         {
@@ -54,7 +61,7 @@ export function registerVSCodeExtensionCommands(
                     )}`
                 );
                 const { label } = args[0][0] as { label: string };
-                mngr.removeHighlight(label);
+                hmngr.remove(label);
             },
         },
         {
@@ -69,7 +76,7 @@ export function registerVSCodeExtensionCommands(
                     token: string;
                     uri: string;
                 };
-                mngr.removeMarker(token, uri);
+                mmngr.remove(token, uri);
             },
         },
         {
