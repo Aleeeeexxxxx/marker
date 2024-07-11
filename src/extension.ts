@@ -1,40 +1,49 @@
 import * as vscode from "vscode";
-import { HighlightExplorer } from "./plugin/highlightExplorer";
-import { Decorator } from "./plugin/decorator";
 import { LogLevel, logger } from "./logger";
 import { registerVSCodeExtensionCommands } from "./commands";
-import { MarkerManager } from "./mngr";
-import { MarkerExplorer } from "./plugin/markerExploer";
+import { MarkerMngr } from "./marker";
+import { InMemoryMessageQueue } from "./mq";
+import { MarkerExplorer } from "./explorer/marker";
+import { HighlightMngr } from "./highlight";
+import { HighlightExplorer } from "./explorer/highlight";
+import { VscodeEventDispatcher } from "./dispatcher";
+import { Decorator } from "./decorator/highlight";
 
 export function activate(context: vscode.ExtensionContext) {
     configExtension();
     createOutputChannel();
 
-    const mngr = new MarkerManager();
-    const activityBarProvider = new HighlightExplorer();
-    const markerExplorer = new MarkerExplorer(mngr);
+    const mq = new InMemoryMessageQueue();
 
-    mngr.register(new Decorator(mngr), activityBarProvider, markerExplorer);
+    const dispatcher = new VscodeEventDispatcher(mq);
 
-    registerVSCodeExtensionCommands(context, mngr);
+    const mmngr = new MarkerMngr(mq);
+    const mExplorer = new MarkerExplorer(mq, mmngr);
+
+    const hmngr = new HighlightMngr(mq);
+    const hExplorer = new HighlightExplorer(mq);
+
+    const _ = new Decorator(mq, hmngr);
+
+    registerVSCodeExtensionCommands(context, mmngr, hmngr);
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor((editor) =>
-            mngr.onActiveEditorChange(editor)
+        vscode.window.onDidChangeActiveTextEditor(
+            dispatcher.onDidChangeActiveTextEditor.bind(dispatcher)
         ),
-        vscode.workspace.onDidChangeTextDocument((event) =>
-            mngr.onTextDocumentChange(event)
+        vscode.workspace.onDidChangeTextDocument(
+            dispatcher.onDidChangeTextDocument.bind(dispatcher)
         ),
         vscode.workspace.onDidChangeConfiguration(onConfigChange)
     );
 
     vscode.window.registerTreeDataProvider(
         "activitybar_highlight_explorer",
-        activityBarProvider
+        hExplorer
     );
     vscode.window.registerTreeDataProvider(
         "activitybar_marker_explorer",
-        markerExplorer
+        mExplorer
     );
 
     logger.info("extension activited!");

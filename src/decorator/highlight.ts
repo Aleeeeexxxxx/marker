@@ -1,14 +1,14 @@
 import { logger } from "../logger";
-import {
-    IMarkerEventPayload,
-    MarkerEvent,
-    MarkerEventType,
-    MarkerManager,
-    MarkerPlugin,
-} from "../mngr";
 import * as vscode from "vscode";
 import { OrderedLinkedList, OrderedLinkedListHead } from "../utils";
-import { PluginBase } from "./base";
+import { InMemoryMessageQueue } from "../mq";
+import {
+    HighlightMngr,
+    IHighlightChangeMessage,
+    topicHighlightAdd,
+    topicHighlightRemove,
+    topicHighlightReset,
+} from "../highlight";
 
 interface RenderOption {
     name: string;
@@ -76,67 +76,55 @@ interface DecorationItem {
 /**
  * Decorator,  highlight selected words
  */
-export class Decorator extends PluginBase implements MarkerPlugin {
+export class Decorator {
     private avaiable: OrderedLinkedList<RenderOption> =
         new OrderedLinkedListHead<RenderOption>(() => true);
-
-    constructor(private mngr: MarkerManager) {
-        super();
-
-        defaultRenderOptions.forEach((op) => this.avaiable.insert(op));
-
-        this.__registerEventHandler(
-            MarkerEventType.POST_ADD_HIGHLIGHT,
-            this.postAdd.bind(this)
-        );
-        this.__registerEventHandler(
-            MarkerEventType.POST_REMOVE_HIGHLIGHT,
-            this.postRemove.bind(this)
-        );
-        this.__registerEventHandler(
-            MarkerEventType.RESET_HIGHLIGHT,
-            this.reset.bind(this)
-        );
-    }
 
     private decoratedItems: Map<string, DecorationItem> = new Map<
         string,
         DecorationItem
     >();
 
-    name(): string {
-        return "Decorator";
-    }
+    private mq: InMemoryMessageQueue;
+    private mngr: HighlightMngr;
 
-    private __registerEventHandler(
-        _type: MarkerEventType,
-        handler: (payload: IMarkerEventPayload) => void
-    ) {
-        const precheck = this.preCheck.bind(this);
-        this.registerTypeHandler(_type, (event) => {
-            precheck(event) ? handler(event.payload) : null;
+    constructor(mq: InMemoryMessageQueue, mngr: HighlightMngr) {
+        defaultRenderOptions.forEach((op) => this.avaiable.insert(op));
+
+        this.mngr = mngr;
+        this.mq = mq;
+
+        this.mq.subscribe(topicHighlightAdd, async (msg) => {
+            this.add((msg.payload as IHighlightChangeMessage).marker);
+            msg.commit();
+        });
+        this.mq.subscribe(topicHighlightRemove, async (msg) => {
+            this.remove((msg.payload as IHighlightChangeMessage).marker);
+            msg.commit();
+        });
+        this.mq.subscribe(topicHighlightReset, async (msg) => {
+            this.reset();
+            msg.commit();
         });
     }
 
-    preCheck(event: MarkerEvent): boolean {
-        return this.mngr.getCurrentVersion() === event.version;
+    preCheck(version: number): boolean {
+        return this.mngr.getCurrentVersion() === version;
     }
 
-    postAdd(event: IMarkerEventPayload): void {
+    add(token: string): void {
         const nn = this.avaiable.popFront();
         if (!nn) {
             return;
         }
 
         const renderOp = nn.data;
-        const marker = event.marker as string;
-        this.decorateMarker(marker, renderOp);
-        logger.info(`decorate [${renderOp.name}] for ${marker}`);
+        this.decorateMarker(token, renderOp);
+        logger.info(`decorate [${renderOp.name}] for ${token}`);
     }
 
-    postRemove(event: IMarkerEventPayload): void {
-        const marker = event.marker as string;
-        const item = this.decoratedItems.get(marker);
+    remove(token: string): void {
+        const item = this.decoratedItems.get(token);
         if (!item) {
             return;
         }
@@ -145,7 +133,7 @@ export class Decorator extends PluginBase implements MarkerPlugin {
         this.avaiable.insert(item.renderOp);
     }
 
-    reset(event: IMarkerEventPayload): void {
+    reset(): void {
         this.decoratedItems.forEach((val, marker) => {
             val.decorationType.dispose();
             this.decorateMarker(marker, val.renderOp);
@@ -161,7 +149,7 @@ export class Decorator extends PluginBase implements MarkerPlugin {
 
         vscode.window.activeTextEditor?.setDecorations(
             decorationType,
-            this.mngr.highlight.highlights.get(marker) || []
+            this.mngr.highlights.get(marker) || []
         );
 
         this.decoratedItems.set(marker, { renderOp, decorationType });

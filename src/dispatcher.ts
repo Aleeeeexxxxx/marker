@@ -5,7 +5,9 @@ import { logger } from "./logger";
 
 export const topicChangeActiveTextEditor =
     "marker.dispatcher.changeActiveTextEditor";
-export interface IChangeActiveTextEditorMessage {}
+export interface IChangeActiveTextEditorMessage {
+    uri: string;
+}
 
 export const topicChangeTextDocument = "marker.dispatcher.changeTextDocument";
 export interface IChangeRange {
@@ -14,8 +16,7 @@ export interface IChangeRange {
     changed: number;
 }
 export interface IChangeTextDocumentMessage {
-    document: vscode.TextDocument;
-    range: IChangeRange[];
+    event: vscode.TextDocumentChangeEvent;
 }
 
 export class VscodeEventDispatcher {
@@ -26,33 +27,23 @@ export class VscodeEventDispatcher {
     }
 
     onDidChangeActiveTextEditor(editor?: vscode.TextEditor) {
-        logger.debug(`editor changed, new=${editor?.document.uri.toString()}.`);
+        const uri = editor ? editor.document.uri.toString() : "";
+        logger.debug(`editor changed, new=${uri}.`);
 
-        if (!editor || VscodeUtils.isFileUri(editor.document.uri.toString())) {
-            logger.debug(`editor changed event ignored.`);
+        if (!editor || !VscodeUtils.isFileUri(uri)) {
+            logger.debug(`editor change event ignored.`);
             return;
         }
 
-        this.mq.publish(
-            topicChangeActiveTextEditor,
-            {} as IChangeActiveTextEditorMessage
-        );
+        this.mq.publish(topicChangeActiveTextEditor, {
+            uri,
+        } as IChangeActiveTextEditorMessage);
     }
 
     onDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
-        logger.debug(`text document change: ${JSON.stringify(event)}`);
-
-        const range: IChangeRange[] = [];
-        const document = event.document;
-
-        event.contentChanges.forEach((change) => {
-            const start = document.offsetAt(change.range.start);
-            const end = document.offsetAt(change.range.end);
-            const changed = change.text.length - (end - start);
-
-            range.push({ start, end, changed });
-        });
-
-        this.mq.publish(topicChangeTextDocument, { document, range });
+        if (VscodeUtils.isFileUri(event.document.uri.toString())) {
+            logger.debug(`text document change: ${JSON.stringify(event)}`);
+            this.mq.publish(topicChangeTextDocument, { event });
+        }
     }
 }

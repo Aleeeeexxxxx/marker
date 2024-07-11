@@ -100,7 +100,9 @@ class Subscriber {
         this.lastCommitMessageIndex = index;
 
         if (this.inProcessingMessageIndex !== index) {
-            throw new Error(`commit wrong index: expect=${this.inProcessingMessageIndex}, actual=${index}`);
+            throw new Error(
+                `commit wrong index: expect=${this.inProcessingMessageIndex}, actual=${index}`
+            );
         }
 
         this.inProcessingMessageIndex = INDEX_START_FROM;
@@ -208,14 +210,17 @@ export class Topic {
             );
         });
 
-        let i = 0;
-        for (; i < this.messages.length; i++) {
-            if (this.messages[i].index >= minCommitted) {
-                break;
+        for (let i = 0; i < this.messages.length; i++) {
+            if (this.messages[i].index === minCommitted) {
+                this.messages = this.messages.slice(i);
+                return;
+            } else if (this.messages[i].index > minCommitted) {
+                this.messages = this.messages.slice(i + 1);
+                return;
             }
         }
 
-        this.messages = this.messages.slice(i + 1);
+        this.messages = [];
     }
 
     private notifySubscribers() {
