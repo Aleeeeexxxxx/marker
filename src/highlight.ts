@@ -98,7 +98,7 @@ export class HighlightMngr {
 
     reset() {
         const editor = vscode.window.activeTextEditor;
-         if (editor) {
+        if (editor) {
             for (const key of this.highlights.keys()) {
                 this.highlights.set(key, this.search(key));
             }
@@ -135,5 +135,29 @@ export class HighlightMngr {
 
     private __search(token: string, text: string): Array<number> {
         return KMP.searchAll(text, token, KMP.getNext(token));
+    }
+
+    deserialize(rawdata: string) {
+        if (typeof rawdata === "object") {
+            rawdata = "";
+        }
+        if (rawdata.length <= 0) {
+            return;
+        }
+        this.highlights = new Map();
+
+        rawdata.split("__marker_internal__").forEach((h) => {
+          this.add(h);
+        });
+
+    }
+
+    serialize(): string {
+        const highlights: string[] = [];
+        this.highlights.forEach((val, key) => {
+            highlights.push(key);
+        });
+
+        return highlights.join("__marker_internal__");
     }
 }

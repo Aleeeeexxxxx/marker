@@ -8,6 +8,7 @@ import { HighlightMngr } from "./highlight";
 import { HighlightExplorer } from "./explorer/highlight";
 import { VscodeEventDispatcher } from "./dispatcher";
 import { Decorator } from "./decorator/highlight";
+import { Persister } from "./persister";
 
 export function activate(context: vscode.ExtensionContext) {
     configExtension();
@@ -24,6 +25,10 @@ export function activate(context: vscode.ExtensionContext) {
     const hExplorer = new HighlightExplorer(mq);
 
     const _ = new Decorator(mq, hmngr);
+
+    const persister = new Persister(context.workspaceState, mq, mmngr, hmngr);
+    mmngr.deserialize(persister.getMarkers());
+    hmngr.deserialize(persister.getHighlights());
 
     registerVSCodeExtensionCommands(context, mmngr, hmngr);
 

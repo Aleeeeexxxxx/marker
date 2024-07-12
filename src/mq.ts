@@ -212,10 +212,10 @@ export class Topic {
 
         for (let i = 0; i < this.messages.length; i++) {
             if (this.messages[i].index === minCommitted) {
-                this.messages = this.messages.slice(i);
+                this.messages = this.messages.slice(i + 1);
                 return;
             } else if (this.messages[i].index > minCommitted) {
-                this.messages = this.messages.slice(i + 1);
+                this.messages = this.messages.slice(i);
                 return;
             }
         }
@@ -249,6 +249,8 @@ export class InMemoryMessageQueue {
     }
 
     publish(topic: string, msg: any) {
+        logger.debug(`publish message to ${topic}`);
+
         let __topic = this.__topics.get(topic);
         if (__topic) {
             __topic.publishMessage(msg);
