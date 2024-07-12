@@ -194,4 +194,41 @@ export class MarkerMngr {
         }
         markers.insert(item);
     }
+
+    serialize(): string {
+        const ret: string[] = [];
+
+        this.__markers.forEach((items, key) => {
+            items.forEach((item) => {
+                ret.push(`${key}==${JSON.stringify(item)}`);
+            });
+        });
+
+        return ret.join("__marker_internal__");
+    }
+
+    deserialize(rawdata: string) {
+        if (rawdata.length <= 0) {
+            return;
+        }
+
+        this.__markers = new Map();
+
+        rawdata.split("__marker_internal__").forEach((raw) => {
+            const vals = raw.split("==");
+            const item = JSON.parse(vals[1], (key, value) => {
+                if (key === "") {
+                    return new MarkerItem(
+                        value.token,
+                        value.start,
+                        value.position
+                    );
+                }
+                return value;
+            });
+            this.__add(vals[0], item);
+        });
+
+        this.mq.publish(topicMarkerChange, {});
+    }
 }
