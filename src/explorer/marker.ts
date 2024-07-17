@@ -1,10 +1,11 @@
 import * as vscode from "vscode";
 import { cmdGoToLineInFile } from "../commands";
 import {
-    IMarkerChangeMessage,
     MarkerItem,
     MarkerMngr,
-    topicMarkerChange,
+    topicMarkerAdd,
+    topicMarkerRemove,
+    topicMarkerReset,
 } from "../marker";
 import { ExplorerBase } from "./base";
 import { InMemoryMessageQueue } from "../mq";
@@ -26,18 +27,23 @@ export class MarkerExplorer
         this.mngr = marker;
 
         this.mq = mq;
-        this.mq.subscribe(topicMarkerChange, async (msg) => {
-            const array = new Array<MarkerExplorerItem>();
-            this.mngr.__markers.forEach((val, uri) => {
-                val.forEach((item) =>
-                    array.push(new MarkerExplorerItem(uri, item))
-                );
-            });
-            this.markers = array;
-            
-            this.fire();
-            msg.commit();
+        this.mq.subscribe(topicMarkerReset, this.eventHandler.bind(this));
+
+        this.mq.subscribe(topicMarkerAdd, this.eventHandler.bind(this));
+        this.mq.subscribe(topicMarkerRemove, this.eventHandler.bind(this));
+    }
+
+    async eventHandler(msg: any) {
+        const array = new Array<MarkerExplorerItem>();
+        this.mngr.__markers.forEach((val, uri) => {
+            val.forEach((item) =>
+                array.push(new MarkerExplorerItem(uri, item))
+            );
         });
+        this.markers = array;
+
+        this.fire();
+        msg.commit();
     }
 
     /**
@@ -65,12 +71,7 @@ class MarkerExplorerItem extends vscode.TreeItem {
     public token: string;
 
     constructor(uri: string, item: MarkerItem) {
-        const label = item.broken
-            ? {
-                  label: `[BROKEN]${item.token}`,
-                  highlights: [[0, 8]] as [number, number][],
-              }
-            : item.token;
+        const label = item.token;
         super(label);
 
         this.uri = uri;

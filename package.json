@@ -40,11 +40,7 @@
       },
       {
         "command": "marker.editor.menu.mark.mark",
-        "title": "Mark Selection"
-      },
-      {
-        "command": "marker.editor.menu.mark.remove",
-        "title": "Remove"
+        "title": "Mark Here"
       },
       {
         "command": "marker.base.gotoLineInFile",
