@@ -69,6 +69,7 @@ export class MarkerDecorator {
         const uri = vscode.window.activeTextEditor?.document.uri.toString();
         if (!uri || !VscodeUtils.isFileUri(uri) || uri === this.currentUri) {
             logger.debug(`marker decorator ignore reset`);
+            msg.commit();
             return;
         }
 
