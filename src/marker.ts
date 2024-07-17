@@ -4,9 +4,15 @@ import { OrderedLinkedList, OrderedLinkedListHead } from "./utils";
 import { InMemoryMessageQueue } from "./mq";
 import { topicChangeTextDocument } from "./dispatcher";
 
-export interface IMarkerChangeMessage {}
+export interface IMarkerChangeMessage {
+    markers: MarkerItem[];
+    uri: string;
+}
 
 export const topicMarkerChange = "marker.marker.change";
+export const topicMarkerAdd = "marker.marker.add";
+export const topicMarkerRemove = "marker.marker.remove";
+export const topicMarkerReset = "marker.marker.reset";
 
 interface IDocumentChange {
     document: vscode.TextDocument;
@@ -24,14 +30,11 @@ export class MarkerItem {
     end: number;
     position: vscode.Position;
 
-    broken: boolean;
-
     constructor(token: string, start: number, position: vscode.Position) {
         this.token = token;
         this.start = start;
         this.end = start + token.length;
         this.position = position;
-        this.broken = false;
     }
 
     onChange(change: IDocumentChange): boolean {
@@ -53,7 +56,6 @@ export class MarkerItem {
             return true;
         }
 
-        this.broken = true;
         return true;
     }
 
@@ -63,6 +65,10 @@ export class MarkerItem {
                 .getText()
                 .substring(this.start, this.end)}`
         );
+    }
+
+    uniqueKey(): string {
+        return `${this.token}+${this.start}`;
     }
 }
 
@@ -113,10 +119,7 @@ export class MarkerMngr {
             const { event } = msg.payload as {
                 event: vscode.TextDocumentChangeEvent;
             };
-            const somethingChanged = this.onTextDocumentChange(event);
-            if (somethingChanged) {
-                this.mq.publish(topicMarkerChange, {});
-            }
+            this.onTextDocumentChange(event);
             msg.commit();
         });
     }
@@ -125,28 +128,44 @@ export class MarkerMngr {
         return document.uri.toString();
     }
 
-    onTextDocumentChange(event: vscode.TextDocumentChangeEvent): boolean {
+    onTextDocumentChange(event: vscode.TextDocumentChangeEvent): MarkerItem[] {
         const { document } = event;
         const markers = this.__markers.get(MarkerMngr.key(document));
-        let changed = false;
+        let changedItems: MarkerItem[] = [];
+        const changedItemsSet = new Set();
 
         markers &&
             event.contentChanges.forEach((change) => {
                 const docChange = getDocumentChange(document, change);
                 markers.forEach((item) => {
-                    if (!item.broken) {
-                        changed = item.onChange(docChange);
+                    const changed = item.onChange(docChange);
+                    if (changed && !changedItemsSet.has(item.uniqueKey())) {
+                        changedItemsSet.add(item.uniqueKey());
+                        changedItems.push(item);
                     }
                 });
             });
-        return changed;
+        return changedItems;
     }
 
-    add(editor: vscode.TextEditor) {
+    async add(editor: vscode.TextEditor) {
+        let token = await vscode.window.showInputBox({
+            prompt: "Please enter the token you want to marker here",
+            placeHolder: "Type something here...",
+        });
+
         const { document, selection } = editor;
-        const token = document.getText(selection);
-        if (token.length <= 0) {
-            return;
+
+        if (!token || token.length <= 0) {
+            const selectedTokens = document.getText(selection);
+            if (selectedTokens.length > 0) {
+                token = selectedTokens;
+            } else {
+                vscode.window.showErrorMessage(
+                    "Please input/select at least one charater for marker"
+                );
+                return;
+            }
         }
 
         debugPrintLastNCharacter(
@@ -155,15 +174,16 @@ export class MarkerMngr {
             "textBeforeSelection"
         );
 
-        this.__add(
-            MarkerMngr.key(document),
-            new MarkerItem(
-                token,
-                document.offsetAt(selection.anchor),
-                selection.anchor
-            )
+        const marker = new MarkerItem(
+            token,
+            document.offsetAt(selection.anchor),
+            selection.anchor
         );
-        this.mq.publish(topicMarkerChange, {});
+        this.__add(MarkerMngr.key(document), marker);
+        this.mq.publish(topicMarkerAdd, {
+            uri: document.uri.toString(),
+            markers: [marker],
+        } as IMarkerChangeMessage);
     }
 
     remove(token: string, uri: string) {
@@ -177,8 +197,13 @@ export class MarkerMngr {
                 }
             });
 
-            nn && markers.remove(nn);
-            this.mq.publish(topicMarkerChange, {});
+            if (nn) {
+                markers.remove(nn);
+                this.mq.publish(topicMarkerRemove, {
+                    uri,
+                    markers: [nn.data],
+                } as IMarkerChangeMessage);
+            }
         }
     }
 
@@ -229,6 +254,6 @@ export class MarkerMngr {
             this.__add(vals[0], item);
         });
 
-        this.mq.publish(topicMarkerChange, {});
+        this.mq.publish(topicMarkerReset, {});
     }
 }

@@ -2,11 +2,14 @@ import * as vscode from "vscode";
 import { InMemoryMessageQueue } from "./mq";
 import {
     HighlightMngr,
-    IHighlightChangeMessage,
     topicHighlightAdd,
     topicHighlightRemove,
 } from "./highlight";
-import { MarkerMngr, topicMarkerChange } from "./marker";
+import {
+    MarkerMngr,
+    topicMarkerAdd,
+    topicMarkerRemove,
+} from "./marker";
 
 const highlightKey = "marker.persister.highlight";
 const markerKey = "marker.persister.marker";
@@ -39,14 +42,19 @@ export class Persister {
             msg.commit();
         });
 
-        this.mq.subscribe(topicMarkerChange, async (msg) => {
+        this.mq.subscribe(topicMarkerAdd, async (msg) => {
+            this.store.update(markerKey, this.mmngr.serialize());
+            msg.commit();
+        });
+
+        this.mq.subscribe(topicMarkerRemove, async (msg) => {
             this.store.update(markerKey, this.mmngr.serialize());
             msg.commit();
         });
     }
 
     getHighlights(): string {
-        const markers = this.store.get<string>(highlightKey) ;
+        const markers = this.store.get<string>(highlightKey);
         return markers ? markers : "";
     }
 

@@ -35,10 +35,11 @@ export function registerVSCodeExtensionCommands(
         },
         {
             command: "marker.editor.menu.mark.mark",
-            handler: () => {
+            handler: async () => {
                 if (!vscode.window.activeTextEditor) {
                     return;
                 }
+
                 mmngr.add(vscode.window.activeTextEditor);
             },
         },
@@ -68,7 +69,7 @@ export function registerVSCodeExtensionCommands(
             command: "marker.activitybar.marker.remove",
             handler: (...args) => {
                 logger.debug(
-                    `args for marker.activitybar.highlight.remove: ${JSON.stringify(
+                    `args for marker.activitybar.marker.remove: ${JSON.stringify(
                         args
                     )}`
                 );
