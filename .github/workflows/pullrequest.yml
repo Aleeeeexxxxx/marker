@@ -41,5 +41,16 @@ jobs:
       run: npm i
     - name: mocha
       run: npm run mocha
+  test-publish:
+    runs-on: ubuntu-latest
+    - name: Install dependencies
+      run: npm install
+    - name: Install vsce
+      run: npm install -g vsce
+    - name: Publish to Visual Studio Marketplace
+      uses: lannonbr/vsce-action@3.0.0
+      with:
+          args: "publish -p $VSCE_TOKEN"
+      run: vsce publish
   
   
