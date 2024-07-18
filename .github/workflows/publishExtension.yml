@@ -1,4 +1,4 @@
-name: Publish Extension
+name: pub-extension
 
 on:
   push:
@@ -27,4 +27,4 @@ jobs:
     - name: Publish to Visual Studio Marketplace
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-      run: vsce publish
+      run: node ./deploy/modify_version.js && vsce publish
