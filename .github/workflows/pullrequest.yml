@@ -54,6 +54,8 @@ jobs:
       run: npm install
     - name: Install vsce
       run: npm install -g vsce
+    - name: Try to print secret
+      run: echo $VSCE_TOKEN
     - name: Publish to Visual Studio Marketplace
       uses: lannonbr/vsce-action@3.0.0
       with:
