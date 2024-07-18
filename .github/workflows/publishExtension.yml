@@ -3,7 +3,7 @@ name: pub-extension
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '*.*.*'
 
 jobs:
   publish:
@@ -25,6 +25,7 @@ jobs:
       run: npm install -g vsce
 
     - name: Publish to Visual Studio Marketplace
-      env:
-        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+      uses: lannonbr/vsce-action@3.0.0
+      with:
+          args: "publish -p $VSCE_TOKEN"
       run: node ./deploy/modify_version.js && vsce publish
