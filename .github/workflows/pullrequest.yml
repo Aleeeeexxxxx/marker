@@ -57,16 +57,16 @@ jobs:
     - name: Try to print secret
       run: echo $VSCE_TOKEN
       env:
-        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        VSCE_TOKEN: ${{ secrets.VSEC_TOKEN }}
     - name: Try to print secret 2
-      run: echo "${{ secrets.VSCE_TOKEN }}"
+      run: echo "${{ secrets.VSEC_TOKEN }}"
       env:
-        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        VSCE_TOKEN: ${{ secrets.VSEC_TOKEN }}
     - name: Publish to Visual Studio Marketplace
       uses: lannonbr/vsce-action@3.0.0
       with:
         args: publish -p $VSCE_TOKEN
       env:
-        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+        VSCE_TOKEN: ${{ secrets.VSEC_TOKEN }}
   
   
