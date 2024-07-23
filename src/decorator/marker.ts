@@ -62,7 +62,10 @@ export class MarkerDecorator {
         });
 
         this.mq.subscribe(topicMarkerReset, this.handleReset.bind(this));
-        this.mq.subscribe(topicChangeActiveTextEditor, this.handleReset.bind(this));
+        this.mq.subscribe(
+            topicChangeActiveTextEditor,
+            this.handleReset.bind(this)
+        );
     }
 
     private async handleReset(msg: any) {
