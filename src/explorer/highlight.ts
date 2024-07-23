@@ -6,6 +6,7 @@ import {
     topicHighlightRemove,
 } from "../highlight";
 import { ExplorerBase } from "./base";
+import { SearchFilter } from "./filter";
 
 /**
  * HighlightExplorer
@@ -16,10 +17,12 @@ export class HighlightExplorer
 {
     private mq: InMemoryMessageQueue;
     private highlights: Map<string, HighlightItem>;
+    private filter: SearchFilter;
 
     constructor(mq: InMemoryMessageQueue) {
         super();
         this.highlights = new Map();
+        this.filter = new SearchFilter(mq, this.fire.bind(this));
 
         this.mq = mq;
         this.mq.subscribe(topicHighlightAdd, async (msg) => {
@@ -49,7 +52,9 @@ export class HighlightExplorer
     getChildren(
         element?: vscode.TreeItem | undefined
     ): vscode.ProviderResult<vscode.TreeItem[]> {
-        return Array.from(this.highlights.values());
+        return Array.from(this.highlights.values())
+            .map(item => this.filter.filter(item))
+            .filter((item) => item !== undefined) as vscode.TreeItem[];
     }
 }
 
@@ -58,7 +63,7 @@ class HighlightItem extends vscode.TreeItem {
     static contextValue = "highlight_item";
 
     constructor(name: string) {
-        super(name);
+        super({ label: name } as vscode.TreeItemLabel);
 
         this.contextValue = HighlightItem.contextValue;
         this.tooltip = name;

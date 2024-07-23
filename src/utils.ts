@@ -198,7 +198,8 @@ export namespace KMP {
                 i < str.length &&
                 str[i] === pattern[j]
             ) {
-                i++ && j++;
+                i++;
+                j++;
             }
 
             if (j === pattern.length) {

@@ -9,6 +9,7 @@ import {
 } from "../marker";
 import { ExplorerBase } from "./base";
 import { InMemoryMessageQueue } from "../mq";
+import { SearchFilter } from "./filter";
 
 /**
  * HighlightExplorer
@@ -18,13 +19,13 @@ export class MarkerExplorer
     implements vscode.TreeDataProvider<MarkerExplorerItem>
 {
     private mq: InMemoryMessageQueue;
-    private markers: MarkerExplorerItem[];
     private mngr: MarkerMngr;
+    private filter: SearchFilter;
 
     constructor(mq: InMemoryMessageQueue, marker: MarkerMngr) {
         super();
-        this.markers = [];
         this.mngr = marker;
+        this.filter = new SearchFilter(mq, this.fire.bind(this));
 
         this.mq = mq;
         this.mq.subscribe(topicMarkerReset, this.eventHandler.bind(this));
@@ -34,14 +35,6 @@ export class MarkerExplorer
     }
 
     async eventHandler(msg: any) {
-        const array = new Array<MarkerExplorerItem>();
-        this.mngr.__markers.forEach((val, uri) => {
-            val.forEach((item) =>
-                array.push(new MarkerExplorerItem(uri, item))
-            );
-        });
-        this.markers = array;
-
         this.fire();
         msg.commit();
     }
@@ -59,7 +52,16 @@ export class MarkerExplorer
     getChildren(
         element?: MarkerExplorerItem | undefined
     ): vscode.ProviderResult<MarkerExplorerItem[]> {
-        return this.markers;
+        const array = new Array<MarkerExplorerItem>();
+        this.mngr.__markers.forEach((val, uri) => {
+            val.forEach((item) =>
+                array.push(new MarkerExplorerItem(uri, item))
+            );
+        });
+
+        return array
+            .map((item) => this.filter.filter(item))
+            .filter((item) => item !== undefined) as MarkerExplorerItem[];
     }
 }
 
@@ -72,7 +74,7 @@ class MarkerExplorerItem extends vscode.TreeItem {
 
     constructor(uri: string, item: MarkerItem) {
         const label = item.token;
-        super(label);
+        super({ label } as vscode.TreeItemLabel);
 
         this.uri = uri;
         this.token = item.token;
