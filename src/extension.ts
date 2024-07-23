@@ -10,6 +10,7 @@ import { VscodeEventDispatcher } from "./dispatcher";
 import { Decorator } from "./decorator/highlight";
 import { Persister } from "./persister";
 import { MarkerDecorator } from "./decorator/marker";
+import { SearchViewProvider } from "./explorer/search";
 
 export function activate(context: vscode.ExtensionContext) {
     configExtension();
@@ -41,7 +42,12 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeTextDocument(
             dispatcher.onDidChangeTextDocument.bind(dispatcher)
         ),
-        vscode.workspace.onDidChangeConfiguration(onConfigChange)
+        vscode.workspace.onDidChangeConfiguration(onConfigChange),
+
+        vscode.window.registerWebviewViewProvider(
+            "searchView",
+            new SearchViewProvider(mq)
+        )
     );
 
     vscode.window.registerTreeDataProvider(

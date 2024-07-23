@@ -147,9 +147,8 @@ export class HighlightMngr {
         this.highlights = new Map();
 
         rawdata.split("__marker_internal__").forEach((h) => {
-          this.add(h);
+            this.add(h);
         });
-
     }
 
     serialize(): string {

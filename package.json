@@ -71,9 +71,14 @@
           "icon": "media/activityBar.svg"
         }
       ]
-    },
+    }, 
     "views": {
       "marker_activitybar": [
+        {
+          "type": "webview",
+          "id": "searchView",
+          "name": "Search"
+        },
         {
           "id": "activitybar_highlight_explorer",
           "name": "Highlight Explorer"
@@ -111,10 +116,6 @@
         {
           "group": "1_modification",
           "command": "marker.editor.menu.mark.mark"
-        },
-        {
-          "group": "1_modification",
-          "command": "marker.editor.menu.mark.remove"
         }
       ]
     },
