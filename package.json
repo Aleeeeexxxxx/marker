@@ -138,7 +138,7 @@
     "lint-check": "tsc --noEmit && eslint --quiet --ext .ts src",
     "test": "vscode-test",
     "mocha": "mocha -r ts-node/register src/**/*.unit.ts",
-    "integration-test": "xvfb-run -s \"-screen 0 1024x768x24\" npm test"
+    "integration-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",
