@@ -131,13 +131,14 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
+    "compile-tests": "tsc -p . --outDir out && npm run copy-test-files",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint-check": "tsc --noEmit && eslint --quiet --ext .ts src",
     "test": "vscode-test",
     "mocha": "mocha -r ts-node/register src/**/*.unit.ts",
+    "copy-test-files": "cp -r src/test/test-files/ out/test/test-files/",
     "integration-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/test/runTest.js"
   },
   "devDependencies": {

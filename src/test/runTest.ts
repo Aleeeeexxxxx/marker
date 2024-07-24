@@ -16,7 +16,7 @@ async function main() {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
-            launchArgs: [path.resolve(__dirname, "../../integration-test")],
+            launchArgs: [path.resolve(__dirname, "./test-files")],
         });
     } catch (err) {
         console.error(err);
