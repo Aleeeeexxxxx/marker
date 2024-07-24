@@ -2,6 +2,7 @@ import { HighlightMngr } from "./highlight";
 import { logger } from "./logger";
 import * as vscode from "vscode";
 import { MarkerMngr } from "./marker";
+import { MarkerExplorerItem } from "./explorer/marker";
 
 export const cmdGoToLineInFile = "marker.base.gotoLineInFile";
 
@@ -60,9 +61,9 @@ export function registerVSCodeExtensionCommands(
                     `args for marker.activitybar.highlight.remove: ${JSON.stringify(
                         args
                     )}`
-                );
-                const { label } = args[0][0] as { label: string };
-                hmngr.remove(label);
+                ); 
+                const { label } = args[0][0] as vscode.TreeItem;
+                hmngr.remove((label as vscode.TreeItemLabel).label);
             },
         },
         {
@@ -73,10 +74,7 @@ export function registerVSCodeExtensionCommands(
                         args
                     )}`
                 );
-                const { token, uri } = args[0][0] as {
-                    token: string;
-                    uri: string;
-                };
+                const { token, uri } = args[0][0] as MarkerExplorerItem;
                 mmngr.remove(token, uri);
             },
         },
