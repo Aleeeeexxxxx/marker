@@ -27,7 +27,7 @@ jobs:
         id: run-tests
         if: contains(github.event.comment.body, '#integration-test')
         run: |
-          if npm run integration-tests; then
+          if npm run integration-test; then
             echo "Test passed."
             echo "::set-output name=result::success"
           else
