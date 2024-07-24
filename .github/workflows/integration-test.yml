@@ -8,6 +8,8 @@ jobs:
   integration-test:
     if: contains(github.event.comment.html_url, '/pull/')    
     runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.run-tests.outputs.result }}
     steps:
       - name: Checkout code
         if: contains(github.event.comment.body, '#integration-test')
@@ -22,8 +24,18 @@ jobs:
         run: sudo apt-get update && sudo apt-get install xvfb 
 
       - name: Run integration tests
+        id: run-tests
         if: contains(github.event.comment.body, '#integration-test')
-        run: npm run integration-test
+        run: |
+          if npm run integration-tests; then
+            echo "Test passed."
+            echo "::set-output name=result::success"
+          else
+            echo "Test failed."
+            echo "::set-output name=result::failure"
+            exit 1
+          fi
+
   
   success-job:
     needs: integration-test
