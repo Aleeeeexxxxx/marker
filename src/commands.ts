@@ -61,8 +61,8 @@ export function registerVSCodeExtensionCommands(
                         args
                     )}`
                 );
-                const { label } = args[0][0] as { label: string };
-                hmngr.remove(label);
+                const { label } = args[0][0] as { label: vscode.TreeItemLabel };
+                hmngr.remove(label.label);
             },
         },
         {
