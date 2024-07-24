@@ -65,7 +65,7 @@ export class MarkerExplorer
     }
 }
 
-class MarkerExplorerItem extends vscode.TreeItem {
+export class MarkerExplorerItem extends vscode.TreeItem {
     // should equal to when clause of acitivity bar
     static contextValue = "marker_item";
 
