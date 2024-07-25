@@ -1,6 +1,10 @@
 import { SearchViewProvider } from "../../explorer/search";
 import { createComponents } from "../../extension";
-import { registerVSCodeExtensionCommands } from "../../commands";
+import {
+    getVSCodeExtensionCommands,
+    IVScodeCommand,
+    registerVSCodeExtensionCommands,
+} from "../../commands";
 
 import * as vscode from "vscode";
 import * as assert from "assert";
@@ -56,6 +60,7 @@ export class StepSelectInTextDocument implements IIntegrationTestStep {
 }
 
 export class StepExecuteCommand implements IIntegrationTestStep {
+    static commands: IVScodeCommand[] | undefined;
     private command: string;
 
     constructor(command: string) {
@@ -63,8 +68,27 @@ export class StepExecuteCommand implements IIntegrationTestStep {
     }
 
     async run(): Promise<boolean> {
-        await vscode.commands.executeCommand(this.command);
+        const command = this.search();
+        await command.handler();
         return true;
+    }
+
+    private search(): IVScodeCommand {
+        if (!StepExecuteCommand.commands) {
+            StepExecuteCommand.commands = getVSCodeExtensionCommands(
+                mmngr,
+                hmngr
+            );
+        }
+
+        for (var i = 0; i < StepExecuteCommand.commands.length; i++) {
+            const command = StepExecuteCommand.commands[i];
+            if (command.command === this.command) {
+                return command;
+            }
+        }
+
+        throw new Error(`invalid command: ${this.command}`);
     }
 }
 
