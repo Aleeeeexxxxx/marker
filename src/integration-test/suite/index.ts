@@ -1,19 +1,19 @@
 import * as path from "path";
 import Mocha from "mocha";
 import { glob } from "glob";
-import { InMemoryMessageQueue } from "../../mq";
 
 export function run(): Promise<void> {
     // Create the mocha test
     const mocha = new Mocha({
         ui: "tdd",
         color: true,
+        reporter: 'spec', 
     });
 
     const testsRoot = path.resolve(__dirname, "..");
 
     return new Promise((c, e) => {
-        glob("**/**.unit.test.js", { cwd: testsRoot })
+        glob("**/**.integration.test.js", { cwd: testsRoot })
             .then((files) => {
                 // Add files to the test suite
                 files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));

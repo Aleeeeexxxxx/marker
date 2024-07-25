@@ -71,7 +71,7 @@
           "icon": "media/activityBar.svg"
         }
       ]
-    }, 
+    },
     "views": {
       "marker_activitybar": [
         {
@@ -131,15 +131,17 @@
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out && npm run copy-test-files",
+    "compile-tests": "tsc -p . --outDir out && npm run copy-extension-test-files && npm run copy-integration-test-files",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint-check": "tsc --noEmit && eslint --quiet --ext .ts src",
     "test": "vscode-test",
     "mocha": "mocha -r ts-node/register src/**/*.unit.ts",
-    "copy-test-files": "cp -r src/test/test-files/ out/test/",
-    "integration-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/test/runTest.js"
+    "copy-extension-test-files": "cp -r src/test/test-files/ out/test/",
+    "copy-integration-test-files": "copyfiles -u 1 'src/integration-test/**/*.txt' out",
+    "extension-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/test/runTest.js",
+    "integration-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/integration-test/runTest.js"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",
@@ -151,6 +153,7 @@
     "@vscode/test-cli": "^0.0.9",
     "@vscode/test-electron": "^2.3.9",
     "chai": "^4.1.1",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.57.0",
     "mocha": "^10.5.0",
     "ts-loader": "^9.5.1",

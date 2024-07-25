@@ -19,6 +19,11 @@ jobs:
         if: contains(github.event.comment.body, '#integration-test')
         uses: actions/checkout@v3
 
+      - name: Checkout Pull Request
+        run: hub pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: install dependency
         if: contains(github.event.comment.body, '#integration-test')
         run: npm i

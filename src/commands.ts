@@ -6,20 +6,19 @@ import { MarkerExplorerItem } from "./explorer/marker";
 
 export const cmdGoToLineInFile = "marker.base.gotoLineInFile";
 
-interface IVScodeCommand {
+export interface IVScodeCommand {
     command: string;
-    handler: (...args: any) => void;
+    handler: (...args: any) => Promise<void>;
 }
 
-export function registerVSCodeExtensionCommands(
-    context: vscode.ExtensionContext,
+export function getVSCodeExtensionCommands(
     mmngr: MarkerMngr,
     hmngr: HighlightMngr
-) {
-    const commands: IVScodeCommand[] = [
+): IVScodeCommand[] {
+    return [
         {
             command: "marker.editor.menu.mark.highlight",
-            handler: () => {
+            handler: async () => {
                 if (!vscode.window.activeTextEditor) {
                     return;
                 }
@@ -46,7 +45,7 @@ export function registerVSCodeExtensionCommands(
         },
         {
             command: "marker.editor.menu.mark.remove",
-            handler: () => {
+            handler: async () => {
                 if (!vscode.window.activeTextEditor) {
                     return;
                 }
@@ -56,19 +55,19 @@ export function registerVSCodeExtensionCommands(
         },
         {
             command: "marker.activitybar.highlight.remove",
-            handler: (...args) => {
+            handler: async (...args) => {
                 logger.debug(
                     `args for marker.activitybar.highlight.remove: ${JSON.stringify(
                         args
                     )}`
-                ); 
+                );
                 const { label } = args[0][0] as vscode.TreeItem;
                 hmngr.remove((label as vscode.TreeItemLabel).label);
             },
         },
         {
             command: "marker.activitybar.marker.remove",
-            handler: (...args) => {
+            handler: async (...args) => {
                 logger.debug(
                     `args for marker.activitybar.marker.remove: ${JSON.stringify(
                         args
@@ -92,13 +91,22 @@ export function registerVSCodeExtensionCommands(
             },
         },
     ];
+}
 
+export function registerVSCodeExtensionCommands(
+    mmngr: MarkerMngr,
+    hmngr: HighlightMngr,
+    context?: vscode.ExtensionContext
+) {
+    const commands = getVSCodeExtensionCommands(mmngr, hmngr);
     commands.forEach((cmd) => {
-        context.subscriptions.push(
-            vscode.commands.registerCommand(cmd.command, (...args: any[]) => {
+        const disposable = vscode.commands.registerCommand(
+            cmd.command,
+            (...args: any[]) => {
                 logger.debug(`command triggered, ${cmd.command}`);
                 cmd.handler(args);
-            })
+            }
         );
+        context?.subscriptions.push(disposable);
     });
 }

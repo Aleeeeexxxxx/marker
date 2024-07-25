@@ -41,5 +41,9 @@ jobs:
       run: npm i
     - name: mocha
       run: npm run mocha
+    - name: Install xvfb
+      run: sudo apt-get update && sudo apt-get install xvfb
+    - name: extension test
+      run: npm run extension-test
 
   

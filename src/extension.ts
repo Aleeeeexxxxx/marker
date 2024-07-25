@@ -12,10 +12,16 @@ import { Persister } from "./persister";
 import { MarkerDecorator } from "./decorator/marker";
 import { SearchViewProvider } from "./explorer/search";
 
-export function activate(context: vscode.ExtensionContext) {
-    configExtension();
-    createOutputChannel();
-
+export function createComponents(): {
+    mq: InMemoryMessageQueue;
+    dispatcher: VscodeEventDispatcher;
+    mmngr: MarkerMngr;
+    mExplorer: MarkerExplorer;
+    hmngr: HighlightMngr;
+    hExplorer: HighlightExplorer;
+    hDecorator: Decorator;
+    mDecorator: MarkerDecorator;
+} {
     const mq = new InMemoryMessageQueue();
 
     const dispatcher = new VscodeEventDispatcher(mq);
@@ -29,11 +35,38 @@ export function activate(context: vscode.ExtensionContext) {
     const hDecorator = new Decorator(mq, hmngr);
     const mDecorator = new MarkerDecorator(mq, mmngr);
 
+    return {
+        mq,
+        dispatcher,
+        mmngr,
+        mExplorer,
+        hmngr,
+        hExplorer,
+        hDecorator,
+        mDecorator,
+    };
+}
+
+export function activate(context: vscode.ExtensionContext) {
+    configExtension();
+    createOutputChannel();
+
+    const {
+        mq,
+        dispatcher,
+        mmngr,
+        mExplorer,
+        hmngr,
+        hExplorer,
+        hDecorator,
+        mDecorator,
+    } = createComponents();
+
     const persister = new Persister(context.workspaceState, mq, mmngr, hmngr);
     mmngr.deserialize(persister.getMarkers());
     hmngr.deserialize(persister.getHighlights());
 
-    registerVSCodeExtensionCommands(context, mmngr, hmngr);
+    registerVSCodeExtensionCommands(mmngr, hmngr, context);
 
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(
