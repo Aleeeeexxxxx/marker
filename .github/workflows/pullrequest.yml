@@ -70,43 +70,47 @@ jobs:
             echo "::set-output name=result::failure"
             exit 1
           fi
-
   
   success-job:
     needs: integration-test
+    if: needs.integration-test.outputs.test-result == 'success'
     runs-on: ubuntu-latest
 
     steps:
       - name: Post success comment on PR
-        uses: actions/github-script@v6
-        with:
-          script: |
-            CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: "🎉[SUCCESS]. CI link: $CI_URL"
-            })
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ github.event.pull_request.comments_url }}
+        run: |
+          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          COMMENT_BODY="🎉[SUCCESS]. CI link: $CI_URL"
+          
+          curl \
+            $URL \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -X POST \
+            -d "{\"body\": \"$COMMENT_BODY\"}" 
 
   failure-job:
     needs: integration-test
+    if: needs.integration-test.outputs.test-result == 'failure'
     runs-on: ubuntu-latest
 
     steps:
       - name: Post failure comment on PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL: ${{ github.event.pull_request.comments_url }}
         run: |
-          PR_NUMBER=${{ github.event.issue.number }}
           CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           COMMENT_BODY="❌[FAILED]. CI link: $CI_URL"
           
-          curl -H "Authorization: Bearer $GITHUB_TOKEN" \
-               -H "Accept: application/vnd.github+json" \
-               -X POST \
-               -d "{\"body\": \"$COMMENT_BODY\"}" \
-               "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+          curl \
+            $URL \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -X POST \
+            -d "{\"body\": \"$COMMENT_BODY\"}" 
   
   
