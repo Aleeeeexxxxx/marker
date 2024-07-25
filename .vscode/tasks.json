@@ -35,6 +35,14 @@
 				"npm: watch-tests"
 			],
 			"problemMatcher": []
+		},
+		{
+			"label": "compile-tests",
+			"type": "npm",
+			"script": "compile-tests",
+			"group": "build",
+			"problemMatcher": [],
+			"detail": "Runs npm run compile-tests"
 		}
 	]
 }

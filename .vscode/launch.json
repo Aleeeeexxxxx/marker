@@ -23,17 +23,41 @@
 			"name": "Mocha Tests(Current File)",
 			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
 			"args": [
-			  "-r",
-			  "ts-node/register",
-			  "${file}"
+				"-r",
+				"ts-node/register",
+				"${file}"
 			],
 			"internalConsoleOptions": "openOnSessionStart",
 			"skipFiles": [
-			  "<node_internals>/**"
+				"<node_internals>/**"
 			],
 			"outFiles": [
-			  "${workspaceFolder}/dist/**/*.js"
+				"${workspaceFolder}/dist/**/*.js"
 			]
-		  }
+		},
+		{
+			"name": "Integration Tests",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceFolder}/out/test/runTest.js",
+			"preLaunchTask": "compile-tests",
+			"runtimeExecutable": "xvfb-run",
+			"runtimeArgs": [
+				"-s",
+				"-screen 0 1024x768x24"
+			],
+			"args": [
+				"${workspaceFolder}/out/test/runTest.js"
+			],
+			"env": {
+				"DISPLAY": ":99"
+			},
+			"internalConsoleOptions": "openOnSessionStart",
+			"outputCapture": "std",
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			]
+		}
 	]
 }
