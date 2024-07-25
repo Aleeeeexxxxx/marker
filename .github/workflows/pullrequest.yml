@@ -41,20 +41,9 @@ jobs:
       run: npm i
     - name: mocha
       run: npm run mocha
-  extension-test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.20.x
-        cache: 'npm'
-    - name: install dependency
-      run: npm i
     - name: Install xvfb
-      run: sudo apt-get update && sudo apt-get install xvfb 
-    - name: mocha
-      run: npm run integration-test
+      run: sudo apt-get update && sudo apt-get install xvfb
+    - name: extension test
+      run: npm run extension-test
 
   
