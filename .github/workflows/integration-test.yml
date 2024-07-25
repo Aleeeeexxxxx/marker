@@ -51,7 +51,7 @@ jobs:
           CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           COMMENT_BODY="🎉[SUCCESS]. CI link: $CI_URL"
           
-          curl -H "Authorization: token $GITHUB_TOKEN" \
+          curl -H "Authorization: Bearer $GITHUB_TOKEN" \
                -H "Accept: application/vnd.github+json" \
                -X POST \
                -d "{\"body\": \"$COMMENT_BODY\"}" \
@@ -71,7 +71,7 @@ jobs:
           CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           COMMENT_BODY="❌[FAILED]. CI link: $CI_URL"
           
-          curl -H "Authorization: token $GITHUB_TOKEN" \
+          curl -H "Authorization: Bearer $GITHUB_TOKEN" \
                -H "Accept: application/vnd.github+json" \
                -X POST \
                -d "{\"body\": \"$COMMENT_BODY\"}" \
