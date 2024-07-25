@@ -12,9 +12,9 @@ interface IVScodeCommand {
 }
 
 export function registerVSCodeExtensionCommands(
-    context: vscode.ExtensionContext,
     mmngr: MarkerMngr,
-    hmngr: HighlightMngr
+    hmngr: HighlightMngr,
+    context?: vscode.ExtensionContext
 ) {
     const commands: IVScodeCommand[] = [
         {
@@ -61,7 +61,7 @@ export function registerVSCodeExtensionCommands(
                     `args for marker.activitybar.highlight.remove: ${JSON.stringify(
                         args
                     )}`
-                ); 
+                );
                 const { label } = args[0][0] as vscode.TreeItem;
                 hmngr.remove((label as vscode.TreeItemLabel).label);
             },
@@ -94,11 +94,13 @@ export function registerVSCodeExtensionCommands(
     ];
 
     commands.forEach((cmd) => {
-        context.subscriptions.push(
-            vscode.commands.registerCommand(cmd.command, (...args: any[]) => {
+        const disposable = vscode.commands.registerCommand(
+            cmd.command,
+            (...args: any[]) => {
                 logger.debug(`command triggered, ${cmd.command}`);
                 cmd.handler(args);
-            })
+            }
         );
+        context?.subscriptions.push(disposable);
     });
 }
