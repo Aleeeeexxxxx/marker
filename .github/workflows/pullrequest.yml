@@ -77,19 +77,15 @@ jobs:
 
     steps:
       - name: Post success comment on PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          URL: ${{ github.event.pull_request.comments_url }}
-        run: |
-          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          COMMENT_BODY="🎉[SUCCESS]. CI link: $CI_URL"
-          
-          curl \
-            $URL \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -X POST \
-            -d "{\"body\": \"$COMMENT_BODY\"}" 
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🎉[SUCCESS]. CI link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })
 
   failure-job:
     needs: integration-test
@@ -97,18 +93,13 @@ jobs:
 
     steps:
       - name: Post failure comment on PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          URL: ${{ github.event.pull_request.comments_url }}
-        run: |
-          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          COMMENT_BODY="❌[FAILED]. CI link: $CI_URL"
-          
-          curl \
-            $URL \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -X POST \
-            -d "{\"body\": \"$COMMENT_BODY\"}" 
-  
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌[FAILED]. CI link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })
   

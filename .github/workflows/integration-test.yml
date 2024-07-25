@@ -43,20 +43,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Post success comment on PR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          URL: ${{ github.event.issue.comments_url }}
-        run: |
-          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          COMMENT_BODY="🎉[SUCCESS]. CI link: $CI_URL"
-          
-          curl \
-            $URL \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -X POST \
-            -d "{\"body\": \"$COMMENT_BODY\"}" 
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🎉[SUCCESS]. CI link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            })
 
   failure-job:
     needs: integration-test
