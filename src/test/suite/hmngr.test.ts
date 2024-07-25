@@ -5,12 +5,11 @@ import {
     HighlightMngr,
     IHighlightChangeMessage,
     topicHighlightAdd,
+    topicHighlightRemove,
+    topicHighlightReset,
 } from "../../highlight";
 import { WaitGroup } from "../../utils";
-
-function getWorkspaceFolder(): string {
-    return vscode.workspace.workspaceFolders![0].uri.path;
-}
+import { getWorkspaceFolder } from "./base";
 
 suite("highlight", () => {
     const mq = new InMemoryMessageQueue();
@@ -38,7 +37,48 @@ suite("highlight", () => {
         assert.strictEqual(1, hmngr.highlights.size);
         assert.strictEqual(3, hmngr.highlights.get(token)?.length);
 
-        wg.wait();
+        await wg.wait();
+        sub.close();
+    });
+
+    test("reset", async () => {
+        const token = "highlight";
+        const wg = new WaitGroup();
+        wg.add();
+
+        const sub = mq.subscribe(topicHighlightReset, async (msg) => {
+            msg.commit();
+            wg.done();
+        });
+
+        hmngr.reset();
+
+        assert.strictEqual(1, hmngr.highlights.size);
+        assert.strictEqual(3, hmngr.highlights.get(token)?.length);
+
+        await wg.wait();
+        sub.close();
+    });
+
+    test("remove", async () => {
+        const token = "highlight";
+        const wg = new WaitGroup();
+        wg.add();
+
+        const sub = mq.subscribe(topicHighlightRemove, async (msg) => {
+            const payload = msg.payload as IHighlightChangeMessage;
+            assert.strictEqual(token, payload.marker);
+            msg.commit();
+            wg.done();
+        });
+
+        hmngr.remove(token);
+
+        assert.strictEqual(0, hmngr.highlights.size);
+
+        await wg.wait();
         sub.close();
     });
 });
+
+
