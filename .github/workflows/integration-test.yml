@@ -17,20 +17,17 @@ jobs:
     steps:
       - name: Checkout code
         if: contains(github.event.comment.body, '#integration-test')
-        uses: actions/checkout@v3
-
-      - name: Checkout Pull Request
-        run: hub pr checkout ${{ github.event.issue.number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: install dependency
-        if: contains(github.event.comment.body, '#integration-test')
-        run: npm i
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Install xvfb
         if: contains(github.event.comment.body, '#integration-test')
-        run: sudo apt-get update && sudo apt-get install xvfb 
+        run: sudo apt-get update && sudo apt-get install xvfb
+        
+      - name: install dependency
+        if: contains(github.event.comment.body, '#integration-test')
+        run: npm i
 
       - name: Run integration tests
         id: run-tests
