@@ -73,7 +73,6 @@ jobs:
   
   success-job:
     needs: integration-test
-    if: needs.integration-test.outputs.test-result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -94,7 +93,6 @@ jobs:
 
   failure-job:
     needs: integration-test
-    if: needs.integration-test.outputs.test-result == 'failure'
     runs-on: ubuntu-latest
 
     steps:
