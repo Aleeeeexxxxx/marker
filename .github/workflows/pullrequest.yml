@@ -41,5 +41,76 @@ jobs:
       run: npm i
     - name: mocha
       run: npm run mocha
+  integration-test:
+    if: contains(github.event.comment.html_url, '/pull/')    
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.run-tests.outputs.result }}
+    steps:
+      - name: Checkout code
+        if: contains(github.event.comment.body, '#integration-test')
+        uses: actions/checkout@v3
+
+      - name: install dependency
+        if: contains(github.event.comment.body, '#integration-test')
+        run: npm i
+
+      - name: Install xvfb
+        if: contains(github.event.comment.body, '#integration-test')
+        run: sudo apt-get update && sudo apt-get install xvfb 
+
+      - name: Run integration tests
+        id: run-tests
+        if: contains(github.event.comment.body, '#integration-test')
+        run: |
+          if npm run integration-test; then
+            echo "Test passed."
+            echo "::set-output name=result::success"
+          else
+            echo "Test failed."
+            echo "::set-output name=result::failure"
+            exit 1
+          fi
+
+  
+  success-job:
+    needs: integration-test
+    if: needs.integration-test.outputs.test-result == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post success comment on PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          COMMENT_BODY="🎉[SUCCESS]. CI link: $CI_URL"
+          
+          curl -H "Authorization: Bearer $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github+json" \
+               -X POST \
+               -d "{\"body\": \"$COMMENT_BODY\"}" \
+               "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
+
+  failure-job:
+    needs: integration-test
+    if: needs.integration-test.outputs.test-result == 'failure'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Post failure comment on PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          CI_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          COMMENT_BODY="❌[FAILED]. CI link: $CI_URL"
+          
+          curl -H "Authorization: Bearer $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github+json" \
+               -X POST \
+               -d "{\"body\": \"$COMMENT_BODY\"}" \
+               "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
   
   
