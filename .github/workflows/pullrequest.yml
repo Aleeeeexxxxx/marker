@@ -42,7 +42,6 @@ jobs:
     - name: mocha
       run: npm run mocha
   integration-test:
-    if: contains(github.event.comment.html_url, '/pull/')    
     runs-on: ubuntu-latest
     outputs:
       test-result: ${{ steps.run-tests.outputs.result }}
@@ -75,7 +74,6 @@ jobs:
   
   success-job:
     needs: integration-test
-    if: needs.integration-test.outputs.test-result == 'success'
     runs-on: ubuntu-latest
 
     steps:
@@ -95,7 +93,6 @@ jobs:
 
   failure-job:
     needs: integration-test
-    if: needs.integration-test.outputs.test-result == 'failure'
     runs-on: ubuntu-latest
 
     steps:
