@@ -12,6 +12,8 @@ import { InMemoryMessageQueue } from "../mq";
 import * as vscode from "vscode";
 import { VscodeUtils } from "../utils";
 
+const MARKER_DISPLAY_MAX_LENGTH = 20;
+
 const MarkerDecorateOption = {
     name: "Bright Pink",
     backgroundColor: "#FF007F",
@@ -101,14 +103,17 @@ export class MarkerDecorator {
 
         const decorationType = vscode.window.createTextEditorDecorationType({
             after: {
-                contentText: ` ${item.token} `,
+                contentText: ` ${this.getContentText(item.token)} `,
                 backgroundColor: MarkerDecorateOption.backgroundColor,
                 color: MarkerDecorateOption.color,
             },
         });
 
         vscode.window.activeTextEditor?.setDecorations(decorationType, [
-            new vscode.Range(item.position, item.position),
+            {
+                range: new vscode.Range(item.position, item.position),
+                hoverMessage: `${item.token}`,
+            },
         ]);
 
         this.decoratedItems.set(this.uniqueKey(item), { decorationType });
@@ -116,5 +121,13 @@ export class MarkerDecorator {
 
     private uniqueKey(item: MarkerItem): string {
         return `${JSON.stringify(item.position)}+${item.uniqueKey()}`;
+    }
+
+    private getContentText(text: string): string {
+        if (text.length <= MARKER_DISPLAY_MAX_LENGTH) {
+            return text;
+        }
+
+        return `${text.substring(0, MARKER_DISPLAY_MAX_LENGTH)}...`;
     }
 }
