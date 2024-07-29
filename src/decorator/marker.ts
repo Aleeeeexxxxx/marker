@@ -101,7 +101,7 @@ export class MarkerDecorator {
 
         const decorationType = vscode.window.createTextEditorDecorationType({
             after: {
-                contentText: `__${item.token}__`,
+                contentText: ` ${item.token} `,
                 backgroundColor: MarkerDecorateOption.backgroundColor,
                 color: MarkerDecorateOption.color,
             },
