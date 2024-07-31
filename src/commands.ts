@@ -3,6 +3,7 @@ import { logger } from "./logger";
 import * as vscode from "vscode";
 import { MarkerMngr } from "./marker";
 import { MarkerExplorerItem } from "./explorer/marker";
+import { VscodeUtils } from "./utils";
 
 export const cmdGoToLineInFile = "marker.base.gotoLineInFile";
 
@@ -81,13 +82,21 @@ export function getVSCodeExtensionCommands(
             command: cmdGoToLineInFile,
             handler: async (...args) => {
                 // passed by src/plugin/markerExploer.ts#98
-                const file = args[0][0] as string;
-                const position = args[0][1] as vscode.Position;
+                const uri = args[0][0] as string;
+                const token = args[0][1] as string;
 
-                const document = await vscode.workspace.openTextDocument(file);
+                const document = await vscode.workspace.openTextDocument(
+                    VscodeUtils.getFileAbsolutePath(uri)
+                );
                 const editor = await vscode.window.showTextDocument(document);
-                editor.selection = new vscode.Selection(position, position);
-                editor.revealRange(new vscode.Range(position, position));
+                const tokenStartAt = mmngr.getPosition(uri, token);
+                logger.error(`no such token, ${uri}, ${token}`);
+
+                if (tokenStartAt) {
+                    const position = document.positionAt(tokenStartAt);
+                    editor.selection = new vscode.Selection(position, position);
+                    editor.revealRange(new vscode.Range(position, position));
+                }
             },
         },
     ];

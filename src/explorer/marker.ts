@@ -84,7 +84,7 @@ export class MarkerExplorerItem extends vscode.TreeItem {
         this.command = {
             title: "open file",
             command: cmdGoToLineInFile,
-            arguments: [getFileAbsolutePath(uri), item.position],
+            arguments: [uri, item.token],
         };
         this.description = MarkerExplorerItem.getLabel(uri, item);
     }
@@ -101,8 +101,4 @@ export class MarkerExplorerItem extends vscode.TreeItem {
 function getFileName(uri: string): string {
     const items = uri.split("/");
     return items.at(items.length - 1) as string;
-}
-
-function getFileAbsolutePath(uri: string): string {
-    return uri.substring("file://".length);
 }

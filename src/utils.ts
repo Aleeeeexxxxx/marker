@@ -223,4 +223,8 @@ export namespace VscodeUtils {
     export function isFileUri(uri?: string): boolean {
         return uri ? uri.startsWith("file://") : false;
     }
+
+    export function getFileAbsolutePath(uri: string): string {
+        return uri.substring("file://".length);
+    }
 }

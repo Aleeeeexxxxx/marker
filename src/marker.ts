@@ -256,4 +256,18 @@ export class MarkerMngr {
 
         this.mq.publish(topicMarkerReset, {});
     }
+
+    getPosition(uri: string, token: string): number | undefined {
+        const file = this.__markers.get(uri);
+        if (!file) {
+            return undefined;
+        }
+        const t = file?.find((t) => {
+            if (t.token === token) {
+                return { match: true, shouldContinue: false };
+            }
+            return { match: false, shouldContinue: true };
+        });
+        return t?.data.start;
+    }
 }
