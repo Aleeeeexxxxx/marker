@@ -99,7 +99,7 @@ export function getDocumentChange(
     debugPrintLastNCharacter(document, change.range.end, "textBeforeChangeEnd");
 
     const start = document.offsetAt(change.range.start);
-    const end = document.offsetAt(change.range.end);
+    const end = start + change.rangeLength;
     const changed = change.text.length - change.rangeLength;
     logger.debug(`changed, start=${start},end=${end},changed=${changed}`);
 
