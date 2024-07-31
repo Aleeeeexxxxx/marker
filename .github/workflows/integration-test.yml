@@ -65,13 +65,13 @@ jobs:
       - name: Auto approve the pull request
         uses: actions/github-script@v4
         with:
-        script: |
-        const result = await github.pulls.createReview({
-          owner: context.repo.owner,
-          repo: context.repo.repo,
-          pull_number: context.issue.number,
-          event: "APPROVE"
-        })
+          script: |
+            github.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: "APPROVE"
+            })
 
   failure-job:
     needs: integration-test
