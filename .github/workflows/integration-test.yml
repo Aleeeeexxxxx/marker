@@ -63,11 +63,15 @@ jobs:
         id: extract-pr
         run: echo "::set-output name=pr_number::$(jq -r .issue.number < "$GITHUB_EVENT_PATH")"
       - name: Auto approve the pull request
-        uses: hmarr/auto-approve-action@v2
+        uses: actions/github-script@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+        const result = await github.pulls.createReview({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          pull_number: context.issue.number,
+          event: "APPROVE"
+        })
 
   failure-job:
     needs: integration-test
