@@ -59,6 +59,19 @@ jobs:
               repo: context.repo.repo,
               body: '🎉[SUCCESS]. CI link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'
             })
+      - name: Extract PR number
+        id: extract-pr
+        run: echo "::set-output name=pr_number::$(jq -r .issue.number < "$GITHUB_EVENT_PATH")"
+      - name: Auto approve the pull request
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: "APPROVE"
+            })
 
   failure-job:
     needs: integration-test
