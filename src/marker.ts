@@ -148,11 +148,13 @@ export class MarkerMngr {
         return changedItems;
     }
 
-    async add(editor: vscode.TextEditor) {
-        let token = await vscode.window.showInputBox({
-            prompt: "Please enter the token you want to marker here",
-            placeHolder: "Type something here...",
-        });
+    async add(editor: vscode.TextEditor, token?: string) {
+        if (!token) {
+            token = await vscode.window.showInputBox({
+                prompt: "Please enter the token you want to marker here",
+                placeHolder: "Type something here...",
+            });
+        }
 
         const { document, selection } = editor;
 
