@@ -262,6 +262,7 @@ export class MarkerMngr {
     getPosition(uri: string, token: string): number | undefined {
         const file = this.__markers.get(uri);
         if (!file) {
+            logger.warn(`no such uri: ${uri} in marker mngr`);
             return undefined;
         }
         const t = file?.find((t) => {

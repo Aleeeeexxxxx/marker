@@ -85,17 +85,23 @@ export function getVSCodeExtensionCommands(
                 const uri = args[0][0] as string;
                 const token = args[0][1] as string;
 
+                logger.debug(`cmdGoToLineInFile, args=${JSON.stringify(args)}`);
                 const document = await vscode.workspace.openTextDocument(
                     VscodeUtils.getFileAbsolutePath(uri)
                 );
                 const editor = await vscode.window.showTextDocument(document);
                 const tokenStartAt = mmngr.getPosition(uri, token);
-                logger.error(`no such token, ${uri}, ${token}`);
 
-                if (tokenStartAt) {
+                if (tokenStartAt !== undefined) {
                     const position = document.positionAt(tokenStartAt);
                     editor.selection = new vscode.Selection(position, position);
                     editor.revealRange(new vscode.Range(position, position));
+                } else {
+                    logger.error(
+                        `no such token, ${uri}, ${token}, token list=${JSON.stringify(
+                            Object.fromEntries(mmngr.__markers)
+                        )}`
+                    );
                 }
             },
         },
