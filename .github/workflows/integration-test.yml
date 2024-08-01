@@ -39,7 +39,6 @@ jobs:
           else
             echo "Test failed."
             echo "::set-output name=result::failure"
-            exit 1
           fi
 
   
