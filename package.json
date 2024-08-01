@@ -140,8 +140,8 @@
     "mocha": "mocha -r ts-node/register src/**/*.unit.ts",
     "copy-extension-test-files": "cp -r src/test/test-files/ out/test/",
     "copy-integration-test-files": "copyfiles -u 1 'src/integration-test/**/*.txt' out",
-    "extension-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/test/runTest.js",
-    "integration-test": "npm run compile-tests && xvfb-run -s \"-screen 0 1024x768x24\" node ./out/integration-test/runTest.js"
+    "extension-test": "npm run compile-tests && xvfb-run --auto-servernum --server-num=1  node ./out/test/runTest.js",
+    "integration-test": "npm run compile-tests && xvfb-run --auto-servernum --server-num=1  node ./out/integration-test/runTest.js"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",

@@ -148,11 +148,13 @@ export class MarkerMngr {
         return changedItems;
     }
 
-    async add(editor: vscode.TextEditor) {
-        let token = await vscode.window.showInputBox({
-            prompt: "Please enter the token you want to marker here",
-            placeHolder: "Type something here...",
-        });
+    async add(editor: vscode.TextEditor, token?: string) {
+        if (!token) {
+            token = await vscode.window.showInputBox({
+                prompt: "Please enter the token you want to marker here",
+                placeHolder: "Type something here...",
+            });
+        }
 
         const { document, selection } = editor;
 
@@ -255,5 +257,19 @@ export class MarkerMngr {
         });
 
         this.mq.publish(topicMarkerReset, {});
+    }
+
+    getPosition(uri: string, token: string): number | undefined {
+        const file = this.__markers.get(uri);
+        if (!file) {
+            return undefined;
+        }
+        const t = file?.find((t) => {
+            if (t.token === token) {
+                return { match: true, shouldContinue: false };
+            }
+            return { match: false, shouldContinue: true };
+        });
+        return t?.data.start;
     }
 }

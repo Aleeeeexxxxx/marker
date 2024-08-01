@@ -61,15 +61,18 @@ export class StepSelectInTextDocument implements IIntegrationTestStep {
 
 export class StepExecuteCommand implements IIntegrationTestStep {
     static commands: IVScodeCommand[] | undefined;
-    private command: string;
 
-    constructor(command: string) {
+    private command: string;
+    private args: any[];
+
+    constructor(command: string, ...args: any) {
         this.command = command;
+        this.args = args;
     }
 
     async run(): Promise<boolean> {
         const command = this.search();
-        await command.handler();
+        await command.handler(...this.args);
         return true;
     }
 
@@ -108,5 +111,64 @@ export class StepValidateHighlightItemIfExist implements IIntegrationTestStep {
         );
 
         return exist;
+    }
+}
+
+export class StepAddMarker implements IIntegrationTestStep {
+    private token: string;
+    private positionAt: number;
+
+    constructor(token: string, positionAt: number) {
+        this.token = token;
+        this.positionAt = positionAt;
+    }
+
+    async run(): Promise<boolean> {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return false;
+        }
+
+        const position = editor.document.positionAt(this.positionAt);
+        editor.revealRange(new vscode.Range(position, position));
+
+        mmngr.add(editor, this.token);
+        return true;
+    }
+}
+
+export class StepEditCurrentOpenDocument implements IIntegrationTestStep {
+    private handler: (edit: vscode.TextEditorEdit, document: vscode.TextDocument) => void;
+
+    constructor(handler: (edit: vscode.TextEditorEdit, document: vscode.TextDocument) => void) {
+        this.handler = handler;
+    }
+
+    async run(): Promise<boolean> {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return false;
+        }
+
+        editor.edit((edit) => {
+            this.handler(edit, editor.document);
+        });
+        return true;
+    }
+}
+
+export class StepCheckCursorPosition implements IIntegrationTestStep {
+    private expectePositionAt: number;
+
+    constructor(expectePositionAt: number) {
+        this.expectePositionAt = expectePositionAt;
+    }
+    async run(): Promise<boolean> {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return false;
+        }
+        const position = editor.selection.active;
+        return editor.document.offsetAt(position) === this.expectePositionAt;
     }
 }
