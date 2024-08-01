@@ -32,6 +32,7 @@ jobs:
       - name: Run integration tests
         id: run-tests
         if: contains(github.event.comment.body, '#integration-test')
+        continue-on-error: true
         run: |
           if npm run integration-test; then
             echo "Test passed."
@@ -39,6 +40,7 @@ jobs:
           else
             echo "Test failed."
             echo "::set-output name=result::failure"
+            exit 1
           fi
 
   
