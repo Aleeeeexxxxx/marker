@@ -266,14 +266,11 @@ export class MarkerMngr {
             return undefined;
         }
         const t = file?.find((t) => {
-            logger.debug(`walk through: ${t.token}`);
             if (t.token === token) {
-                logger.debug(`${t.token} matched`);
                 return { match: true, shouldContinue: false };
             }
             return { match: false, shouldContinue: true };
         });
-        logger.debug(`result: ${JSON.stringify(t?.data.start)}`);
         return t?.data.start;
     }
 }
