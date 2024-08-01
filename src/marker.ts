@@ -262,14 +262,18 @@ export class MarkerMngr {
     getPosition(uri: string, token: string): number | undefined {
         const file = this.__markers.get(uri);
         if (!file) {
+            logger.warn(`no such uri: ${uri} in marker mngr`);
             return undefined;
         }
         const t = file?.find((t) => {
+            logger.debug(`walk through: ${t.token}`);
             if (t.token === token) {
+                logger.debug(`${t.token} matched`);
                 return { match: true, shouldContinue: false };
             }
             return { match: false, shouldContinue: true };
         });
+        logger.debug(`result: ${JSON.stringify(t?.data.start)}`);
         return t?.data.start;
     }
 }

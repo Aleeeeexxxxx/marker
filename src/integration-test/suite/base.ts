@@ -3,11 +3,10 @@ import { createComponents } from "../../extension";
 import {
     getVSCodeExtensionCommands,
     IVScodeCommand,
-    registerVSCodeExtensionCommands,
 } from "../../commands";
 
 import * as vscode from "vscode";
-import * as assert from "assert";
+import { logger } from "../../logger";
 
 export const {
     mq,
@@ -72,6 +71,7 @@ export class StepExecuteCommand implements IIntegrationTestStep {
 
     async run(): Promise<boolean> {
         const command = this.search();
+        logger.info(`command: ${this.command}, args=${JSON.stringify(this.args)}`);
         await command.handler(...this.args);
         return true;
     }
@@ -131,6 +131,7 @@ export class StepAddMarker implements IIntegrationTestStep {
 
         const position = editor.document.positionAt(this.positionAt);
         editor.revealRange(new vscode.Range(position, position));
+        editor.selection = new vscode.Selection(position, position);
 
         mmngr.add(editor, this.token);
         return true;
